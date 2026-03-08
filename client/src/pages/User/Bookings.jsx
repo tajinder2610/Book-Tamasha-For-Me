@@ -8,6 +8,25 @@ import QRCode from "qrcode";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 
+const buildPosterFallback = (title = "Movie") => {
+  const safeTitle = String(title).trim().slice(0, 28) || "Movie";
+  const svg = `
+    <svg xmlns='http://www.w3.org/2000/svg' width='300' height='450' viewBox='0 0 300 450'>
+      <defs>
+        <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+          <stop offset='0%' stop-color='#edf2ff'/>
+          <stop offset='100%' stop-color='#d9e4ff'/>
+        </linearGradient>
+      </defs>
+      <rect width='300' height='450' fill='url(#g)'/>
+      <rect x='26' y='26' width='248' height='398' rx='12' fill='none' stroke='#a5b4d6' stroke-width='2'/>
+      <text x='150' y='210' text-anchor='middle' font-size='18' font-family='Arial, sans-serif' fill='#2f3f62'>Poster Unavailable</text>
+      <text x='150' y='242' text-anchor='middle' font-size='14' font-family='Arial, sans-serif' fill='#4a5e85'>${safeTitle}</text>
+    </svg>
+  `;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
+
 const buildQrPayload = (booking) => {
   const movieTitle = booking?.show?.movie?.title || booking?.show?.movie?.name || "Movie";
   const theatreName = booking?.show?.theatre?.name || "N/A";
@@ -66,6 +85,12 @@ const Bookings = () => {
     }
   };
 
+  const handlePosterError = (e, title) => {
+    const img = e.currentTarget;
+    img.onerror = null;
+    img.src = buildPosterFallback(title);
+  };
+
   return (
     <div className="bookings-page">
       {bookings.length > 0 ? (
@@ -98,9 +123,13 @@ const Bookings = () => {
                     <div className="booking-card-layout">
                       <div className="booking-poster-wrap">
                         <img
-                          src={booking?.show?.movie?.poster}
+                          src={booking?.show?.movie?.poster || buildPosterFallback(movieTitle)}
                           alt={movieTitle}
                           className="booking-poster"
+                          loading="lazy"
+                          decoding="async"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => handlePosterError(e, movieTitle)}
                         />
                       </div>
 
