@@ -10,6 +10,10 @@ const app = express();
 
 require("dotenv").config(); //load .env variables into process.env object
 
+// Render sits behind a reverse proxy and forwards client IP via X-Forwarded-For.
+// Trust the first proxy hop so middleware like express-rate-limit can identify clients correctly.
+app.set("trust proxy", 1);
+
 const connectDB = require("./config/db");
 const userRouter = require("./routes/userRoute");
 const movieRouter = require("./routes/movieRoute");
@@ -32,7 +36,7 @@ app.use("/api",apiLimiter);
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
@@ -41,10 +45,10 @@ app.use(
  helmet.contentSecurityPolicy({
    directives: {
      defaultSrc: ["'self'"],
-     scriptSrc: ["'self'"],
-     styleSrc: ["'self'", "https://fonts.googleapis.com"],
+     scriptSrc: ["'self'", "https://js.stripe.com"],
+     styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
      imgSrc: ["'self'", "data:"],
-     connectSrc: ["'self'"],
+     connectSrc: ["'self'", "https://api.stripe.com", "https://checkout.stripe.com"],
      fontSrc: ["'self'", "https://fonts.gstatic.com"],
      objectSrc: ["'none'"],
    },
