@@ -7,7 +7,6 @@ const app = express();
 
 const path = require("path");
 const cors = require("cors");
-const express = require("express");
 
 require("dotenv").config(); //load .env variables into process.env object
 
