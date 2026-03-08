@@ -143,7 +143,6 @@
 .app-header-animated .ant-menu,
 .app-header-animated .ant-menu-dark {
   background: transparent !important;
-  transform: translateY(18px);
   position: relative;
   z-index: 2;
 }
@@ -380,6 +379,11 @@ button {
   font-size: 1.05rem;
   font-weight: 600;
   color: #ffe082;
+  display: inline-block;
+  max-width: 170px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .m-0 {
@@ -466,9 +470,21 @@ table th {
   margin-bottom: 25px;
 }
 
-.ant-menu {
-  flex: 1;
-  justify-content: flex-end;
+.app-header-animated .header-user-menu.ant-menu {
+  margin-left: auto;
+  flex: 0 0 auto;
+  min-width: max-content;
+}
+
+.app-header-animated .header-user-menu.ant-menu-horizontal {
+  border-bottom: none;
+  line-height: 74px;
+}
+
+.app-header-animated .header-user-menu .ant-menu-submenu-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .mt-8 {
@@ -1194,6 +1210,13 @@ hr {
   }
   .brand-header-wrap {
     gap: 0;
+  }
+  .app-header-animated .header-user-menu.ant-menu-horizontal {
+    line-height: 64px;
+  }
+  .user-menu-label {
+    max-width: 120px;
+    font-size: 0.95rem;
   }
   .road-runners-track {
     top: 13%;

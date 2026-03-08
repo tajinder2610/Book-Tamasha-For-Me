@@ -168,7 +168,13 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         ) : (
           brandContent
         )}
-        <Menu theme="dark" mode="horizontal" items={navItems} selectedKeys={[]} />
+        <Menu
+          className="header-user-menu"
+          theme="dark"
+          mode="horizontal"
+          items={navItems}
+          selectedKeys={[]}
+        />
       </Header>
       <div
         style={{
