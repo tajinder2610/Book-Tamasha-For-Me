@@ -30,7 +30,13 @@ const Register = () => {
               </Typography.Paragraph>
             </div>
 
-            <Form layout="vertical" onFinish={onFinish} className="auth-form">
+            <Form
+              layout="vertical"
+              onFinish={onFinish}
+              className="auth-form"
+              validateTrigger="onBlur"
+              requiredMark={false}
+            >
               <Form.Item
                 label="Name"
                 name="name"
@@ -39,7 +45,7 @@ const Register = () => {
                   { required: true, message: "Name is required" }
                 ]}
               >
-                <Input type="text" placeholder="Enter your Name" />
+                <Input size="large" type="text" autoComplete="name" placeholder="Enter your Name" />
               </Form.Item>
 
               <Form.Item
@@ -51,7 +57,7 @@ const Register = () => {
                   { type: "email", message: "Please enter a valid email" }
                 ]}
               >
-                <Input type="email" placeholder="Enter your Email" />
+                <Input size="large" type="email" autoComplete="email" placeholder="Enter your Email" />
               </Form.Item>
     
               <Form.Item
@@ -60,16 +66,35 @@ const Register = () => {
                 className="d-block"
                 rules={[{ required: true, message: "Password is required" }]}
               >
-                <Input type="password" placeholder="Enter your Password" />
+                <Input.Password
+                  size="large"
+                  autoComplete="new-password"
+                  placeholder="Enter your Password"
+                />
               </Form.Item>
 
               <Form.Item
                 label="Confirm Password"
                 name="confirmPassword"
                 className="d-block"
-                rules={[{ required: true, message: "Confirm Password is required" }]}
+                dependencies={["password"]}
+                rules={[
+                  { required: true, message: "Confirm Password is required" },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue("password") === value) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(new Error("Passwords do not match"));
+                    },
+                  }),
+                ]}
               >
-                <Input type="password" placeholder="Re-enter your Password" />
+                <Input.Password
+                  size="large"
+                  autoComplete="new-password"
+                  placeholder="Re-enter your Password"
+                />
               </Form.Item>
 
               <Form.Item
@@ -90,9 +115,9 @@ const Register = () => {
               <Form.Item className="d-block">
                 <Button
                   type="primary"
+                  size="large"
                   block
                   htmlType="submit"
-                  style={{ fontSize: "1rem", fontWeight: "600" }}
                 >
                   Register
                 </Button>
@@ -100,9 +125,12 @@ const Register = () => {
             </Form>
 
             <div className="auth-links">
-              <p>
-                Existing user? <Link to="/login" className="auth-link-no-underline">Login here</Link>
-              </p>
+              <Typography.Paragraph className="auth-links-label m-0">
+                Already have an account?
+              </Typography.Paragraph>
+              <div className="auth-link-actions">
+                <Link to="/login" className="auth-link-chip">Login here</Link>
+              </div>
             </div>
           </section>
         </main>
