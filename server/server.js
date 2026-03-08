@@ -3,10 +3,10 @@ const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const mongoSanitize = require('express-mongo-sanitize');
-const app = express();
-
+const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
+const app = express();
 
 require("dotenv").config(); //load .env variables into process.env object
 
@@ -29,6 +29,13 @@ const apiLimiter = rateLimit({
     message: "Too many requests from this IP, plsease try again after 15 minutes."
 });
 app.use("/api",apiLimiter);
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(helmet());
 app.use(
  helmet.contentSecurityPolicy({
@@ -60,34 +67,29 @@ app.use("/api/theatres", theatreRouter);
 app.use("/api/shows", showRouter);
 app.use("/api/booking", bookingRouter);
 
-//404 route, always keep at last
-app.use((req, res, next) => {
-    res.status(404).send("page not found");
-});
-
-app.listen(8082, () => {
-    console.log("Server is Running");
-});
-
-
-// For deploying project
+// For deploying project: support both Vite (dist) and CRA (build)
+const clientDistPath = path.join(__dirname, "../client/dist");
 const clientBuildPath = path.join(__dirname, "../client/build");
-console.log(clientBuildPath);
+const frontendPath = fs.existsSync(clientDistPath) ? clientDistPath : clientBuildPath;
 
-app.use(express.static(clientBuildPath));
+if (fs.existsSync(frontendPath)) {
+  app.use(express.static(frontendPath));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(clientBuildPath, "index.html"));
+  // Keep API 404 behavior intact and let React handle all other routes.
+  app.get("*", (req, res) => {
+    if (req.path.startsWith("/api")) {
+      return res.status(404).send("page not found");
+    }
+    return res.sendFile(path.join(frontendPath, "index.html"));
+  });
+} else {
+  // 404 route, always keep at last
+  app.use((req, res) => {
+    res.status(404).send("page not found");
+  });
+}
+
+const PORT = process.env.PORT || 8082;
+app.listen(PORT, () => {
+  console.log(`Server is Running on port ${PORT}`);
 });
-
-// For deploying project
-// Example production-safe CORS (adjust origin as needed)
-app.use(
-  cors({
-    origin: "https://book-tamasha-for-me.onrender.com/", // Replace with your frontend origin in production (e.g., "https://your-frontend.com")
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-``
-```
