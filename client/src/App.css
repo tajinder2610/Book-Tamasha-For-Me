@@ -847,6 +847,23 @@ hr {
   background-color: #fbfdff;
 }
 
+.auth-card-login .auth-form .ant-input,
+.auth-card-login .auth-form .ant-input-affix-wrapper {
+  border-radius: 10px;
+  border-color: #d5e0f1;
+  background-color: #fbfdff;
+}
+
+.auth-card-login .auth-form .ant-input-affix-wrapper {
+  min-height: 40px;
+}
+
+.auth-card-login .auth-form .ant-input-affix-wrapper:focus,
+.auth-card-login .auth-form .ant-input-affix-wrapper-focused {
+  border-color: #8fb4f5;
+  box-shadow: 0 0 0 2px rgba(73, 129, 223, 0.14);
+}
+
 .auth-card-login .auth-form input:focus,
 .auth-card-login .auth-form input:focus-visible {
   border-color: #8fb4f5;
@@ -905,6 +922,12 @@ hr {
   color: #304863;
 }
 
+.auth-login-form .ant-form-item-explain-error {
+  font-size: 0.8rem;
+  margin-top: 3px;
+  line-height: 1.2;
+}
+
 .auth-form .ant-btn-primary {
   border-radius: 10px;
   height: 44px;
@@ -913,7 +936,7 @@ hr {
 }
 
 .auth-links p {
-  margin: 2px 0;
+  margin: 4px 0;
   color: #5f6e85;
 }
 

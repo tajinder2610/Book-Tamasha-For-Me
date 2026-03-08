@@ -43,7 +43,13 @@ function Login() {
           </Typography.Paragraph>
         </div>
 
-        <Form layout="vertical" onFinish={onFinish} className="auth-form">
+        <Form
+          layout="vertical"
+          onFinish={onFinish}
+          className="auth-form auth-login-form"
+          validateTrigger="onBlur"
+          requiredMark={false}
+        >
           <Form.Item
             label="Email"
             name="email"
@@ -53,7 +59,12 @@ function Login() {
               { type: "email", message: "Please enter a valid email" }
             ]}
           >
-            <Input type="email" placeholder="Enter your Email" />
+            <Input
+              type="email"
+              size="large"
+              autoComplete="email"
+              placeholder="Enter your Email"
+            />
           </Form.Item>
 
           <Form.Item
@@ -62,15 +73,19 @@ function Login() {
             className="d-block"
             rules={[{ required: true, message: "Password is required" }]}
           >
-            <Input type="password" placeholder="Enter your Password" />
+            <Input.Password
+              size="large"
+              autoComplete="current-password"
+              placeholder="Enter your Password"
+            />
           </Form.Item>
 
           <Form.Item className="d-block">
             <Button
               type="primary"
+              size="large"
               block
               htmlType="submit"
-              style={{ fontSize: "1rem", fontWeight: "600" }}
             >
               Login
             </Button>
