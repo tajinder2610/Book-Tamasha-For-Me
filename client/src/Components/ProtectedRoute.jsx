@@ -63,12 +63,12 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <AccessDenied />;
   }
 
-  const isProfilePage = location.pathname === "/profile";
   const isHomePage = location.pathname === "/";
   const displayName = user?.name?.trim() || "Account";
+  const shouldShowHomeShortcut = user.role === "user" && !isHomePage;
 
   const navItems = [
-    ...(user.role === "user" && isProfilePage
+    ...(shouldShowHomeShortcut
       ? [
           {
             key: "home-shortcut",
