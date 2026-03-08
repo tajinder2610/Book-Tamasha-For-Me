@@ -64,8 +64,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       ? [
           {
             key: "home-shortcut",
+            className: "header-home-shortcut",
             label: (
               <span
+                className="header-home-label"
                 onClick={() => {
                   navigate("/");
                 }}
@@ -79,6 +81,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       : []),
     {
       key: "user-menu",
+      className: "header-user-profile-menu",
       label: <span className="user-menu-label">{displayName}</span>,
       icon: <UserOutlined />,
       children: [

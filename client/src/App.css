@@ -488,8 +488,21 @@ table th {
   gap: 6px;
 }
 
-.app-header-animated .header-user-menu .ant-menu-submenu-title .anticon {
+.app-header-animated .header-user-menu .header-user-profile-menu .ant-menu-submenu-title .anticon {
   transform: translateY(20px);
+}
+
+.app-header-animated .header-user-menu .header-home-shortcut .header-home-label {
+  display: inline-block;
+  transform: translateY(20px);
+  color: #ffe082;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.app-header-animated .header-user-menu .header-home-shortcut .anticon {
+  transform: translateY(20px);
+  color: #ffe082;
 }
 
 .mt-8 {
