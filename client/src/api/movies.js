@@ -2,7 +2,7 @@ import { axiosInstance } from "./index";
 //get all Movies
 export const GetAllMovies = async () => {
  try {
-   const response = await axiosInstance.get("api/movies");
+   const response = await axiosInstance.get("/api/movies");
    return response.data;
  } catch (error) {
    console.error(error);
@@ -12,7 +12,7 @@ export const GetAllMovies = async () => {
 // Add a movie
 export const AddMovie = async (value) => {
  try {
-   const response = await axiosInstance.post("api/movies", value);
+   const response = await axiosInstance.post("/api/movies", value);
    console.log(response);
    return response.data
  } catch (error) {

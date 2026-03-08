@@ -2,7 +2,7 @@ import { axiosInstance } from "./index";
 //add show
 export const AddShow = async (value) => {
   try {
-    const response = await axiosInstance.post("api/shows", value);
+    const response = await axiosInstance.post("/api/shows", value);
     return response.data;
   } catch (error) {
     return {

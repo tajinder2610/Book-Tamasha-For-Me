@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, Link, useLocation, Navigate } from "react-router-dom";
 import { HomeOutlined, LogoutOutlined, ProfileOutlined, UserOutlined } from "@ant-design/icons";
 import { message, Layout, Menu, Spin } from "antd";
 import { showLoading, hideLoading } from "../../redux/loaderSlice";
@@ -52,6 +52,14 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
+    if (location.pathname === "/") {
+      if (user.role === "admin") {
+        return <Navigate to="/admin" replace />;
+      }
+      if (user.role === "partner") {
+        return <Navigate to="/partner" replace />;
+      }
+    }
     return <AccessDenied />;
   }
 

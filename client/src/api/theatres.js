@@ -2,7 +2,7 @@ import { axiosInstance } from "./index";
 //get all theatres
 export const GetAllTheatres = async () => {
  try {
-   const response = await axiosInstance.get("api/theatres/all");
+   const response = await axiosInstance.get("/api/theatres/all");
    return response.data;
  } catch (error) {
    console.error(error);
@@ -24,7 +24,7 @@ export const GetAllTheatresOfPartner = async (ownerId) => {
 // Add a theatre
 export const AddTheatre = async (value) => {
  try {
-   const response = await axiosInstance.post("api/theatres", value);
+   const response = await axiosInstance.post("/api/theatres", value);
    console.log(response);
    return response.data
  } catch (error) {
