@@ -57,6 +57,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
   const isProfilePage = location.pathname === "/profile";
   const isHomePage = location.pathname === "/";
+  const displayName = user?.name?.trim() || "Account";
 
   const navItems = [
     ...(user.role === "user" && isProfilePage
@@ -78,7 +79,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       : []),
     {
       key: "user-menu",
-      label: <span className="user-menu-label">{user.name || ""}</span>,
+      label: <span className="user-menu-label">{displayName}</span>,
       icon: <UserOutlined />,
       children: [
         ...(user.role === "user"
@@ -172,6 +173,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
           className="header-user-menu"
           theme="dark"
           mode="horizontal"
+          disabledOverflow
           items={navItems}
           selectedKeys={[]}
         />

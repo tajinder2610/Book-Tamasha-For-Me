@@ -9,7 +9,7 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import DeleteMovieModal from "./DeleteMovieModal";
 
 
-function MovieList() {
+function MovieList({ openAddMovieSignal = 0 }) {
  const [isModalOpen, setIsModalOpen] = useState(false);
  const [movies, setMovies] = useState([]);
  const [selectedMovie, setSelectedMovie] = useState(null);
@@ -111,18 +111,16 @@ function MovieList() {
  useEffect(() => {
    getData();
  }, []);
+
+ useEffect(() => {
+   if (openAddMovieSignal > 0) {
+     setSelectedMovie(null);
+     setFormType("add");
+     setIsModalOpen(true);
+   }
+ }, [openAddMovieSignal]);
  return (
    <>
-     <div className="d-flex justify-content-end">
-       <Button
-         onClick={() => {
-           setIsModalOpen(true);
-           setFormType("add");
-         }}
-       >
-         Add Movie
-       </Button>
-     </div>
      <Table dataSource={movies} columns={tableHeadings} />
      
      {isModalOpen && (

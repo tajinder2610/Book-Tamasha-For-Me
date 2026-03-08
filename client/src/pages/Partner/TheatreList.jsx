@@ -8,7 +8,7 @@ import { GetAllTheatresOfPartner } from "../../api/theatres";
 import { useSelector, useDispatch } from "react-redux";
 import { showLoading, hideLoading } from "../../../redux/loaderSlice";
 
-function TheatreList() {
+function TheatreList({ openAddTheatreSignal = 0 }) {
   const { user } = useSelector((state) => state.users);   // user from redux
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -47,6 +47,14 @@ function TheatreList() {
   useEffect(() => {
     getData();
   }, []);
+
+  useEffect(() => {
+    if (openAddTheatreSignal > 0) {
+      setSelectedTheatre(null);
+      setFormType("add");
+      setIsModalOpen(true);
+    }
+  }, [openAddTheatreSignal]);
 
   const columns = [
     {
@@ -125,17 +133,6 @@ function TheatreList() {
 
   return (
     <>
-      <div className="d-flex justify-content-end">
-        <Button
-          type="primary"
-          onClick={() => {
-            setIsModalOpen(true);
-            setFormType("add");
-          }}
-        >
-          Add Theatre
-        </Button>
-      </div>
       <Table dataSource={theatres} columns={columns} />
       {isModalOpen && (
         <TheatreFormModal

@@ -96,6 +96,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forget" element={<Forget />} />
+        <Route path="/reset" element={<Reset />} />
         <Route path="/reset/:email" element={<Reset />} />
         {/* 404 PAGE */}
         <Route path="*" element={<NotFound />} />

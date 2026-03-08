@@ -1,14 +1,18 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Button, Form, Input, Typography } from "antd";
 import { ResetPassword } from "../api/users";
 import { message } from "antd";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 
 
 function Reset() {
  const { email } = useParams(); // Extract email from URL parameters
  const navigate = useNavigate();
  const onFinish = async (values) => {
+   if (!email) {
+     message.error("Invalid reset link. Please start from Forgot Password.");
+     return;
+   }
    try {
      const response = await ResetPassword(email, values);
      if (response.success) {
@@ -22,11 +26,6 @@ function Reset() {
      message.error(error.message);
    }
  };
- useEffect(() => {
-   if (localStorage.getItem("token")) {
-     navigate("/");
-   }
- }, []);
  return (
      <main className="auth-shell">
        <section className="auth-card">
@@ -37,6 +36,11 @@ function Reset() {
            <Typography.Paragraph className="m-0">
              Enter OTP and your new password.
            </Typography.Paragraph>
+           {!email && (
+             <Typography.Paragraph className="m-0">
+               Missing email in reset link. Go to <Link to="/forget">Forgot Password</Link> to generate a valid link.
+             </Typography.Paragraph>
+           )}
          </div>
 
            <Form layout="vertical" onFinish={onFinish} className="auth-form">

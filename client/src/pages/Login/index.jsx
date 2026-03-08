@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Form, Input, Typography, message } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { LoginUser } from "../../api/users";
 function Login() {
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const onFinish = async (value) => {
+  setIsSubmitting(true);
   try {
     const response = await LoginUser(value);
 
@@ -28,7 +31,9 @@ function Login() {
       message.error(response.message);
     }
   } catch (err) {
-    message.error(err.message);
+    message.error(err?.response?.data?.message || err.message || "Login failed");
+  } finally {
+    setIsSubmitting(false);
   }
 };
   return (
@@ -86,6 +91,7 @@ function Login() {
               size="large"
               block
               htmlType="submit"
+              loading={isSubmitting}
             >
               Login
             </Button>

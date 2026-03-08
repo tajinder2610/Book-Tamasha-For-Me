@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import MovieList from "./MovieList";
 import TheatresTable from "./TheatresTable";
-import { Tabs, Typography } from "antd";
+import { Button, Tabs, Typography } from "antd";
 
 function Admin() {
+  const [openAddMovieSignal, setOpenAddMovieSignal] = useState(0);
+  const [activeTab, setActiveTab] = useState("1");
+
   const tabItems = [
     {
       key: "1",
       label: "Movies",
-      children: <MovieList />,
+      children: <MovieList openAddMovieSignal={openAddMovieSignal} />,
     },
     {
       key: "2",
@@ -28,7 +31,21 @@ function Admin() {
       </div>
 
       <div className="dashboard-tabs-wrap">
-        <Tabs defaultActiveKey="1" items={tabItems} />
+        <Tabs
+          defaultActiveKey="1"
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={tabItems}
+          tabBarExtraContent={activeTab === "1" ? (
+            <Button
+              type="primary"
+              className="dashboard-action-btn"
+              onClick={() => setOpenAddMovieSignal((prev) => prev + 1)}
+            >
+              Add Movie
+            </Button>
+          ) : null}
+        />
       </div>
     </div>
   );

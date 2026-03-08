@@ -380,6 +380,7 @@ button {
   font-weight: 600;
   color: #ffe082;
   display: inline-block;
+  transform: translateY(20px);
   max-width: 170px;
   white-space: nowrap;
   overflow: hidden;
@@ -485,6 +486,10 @@ table th {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.app-header-animated .header-user-menu .ant-menu-submenu-title .anticon {
+  transform: translateY(20px);
 }
 
 .mt-8 {
@@ -1022,6 +1027,17 @@ hr {
 
 .dashboard-tabs-wrap .ant-tabs-tab {
   font-weight: 600;
+}
+
+.dashboard-action-btn.ant-btn-primary {
+  background: #1677ff;
+  border-color: #1677ff;
+}
+
+.dashboard-action-btn.ant-btn-primary:hover,
+.dashboard-action-btn.ant-btn-primary:focus {
+  background: #0958d9 !important;
+  border-color: #0958d9 !important;
 }
 
 /* Loader */

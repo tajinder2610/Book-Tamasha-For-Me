@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import TheatreList from "./TheatreList";
-import { Tabs, Typography } from "antd";
+import { Button, Tabs, Typography } from "antd";
 
 function Partner() {
+  const [openAddTheatreSignal, setOpenAddTheatreSignal] = useState(0);
+
   const tabItems = [
     {
       key: "1",
       label: "Theatres",
-      children: <TheatreList />,
+      children: <TheatreList openAddTheatreSignal={openAddTheatreSignal} />,
     },
   ];
   return (
@@ -22,7 +24,19 @@ function Partner() {
       </div>
 
       <div className="dashboard-tabs-wrap">
-        <Tabs defaultActiveKey="1" items={tabItems} />
+        <Tabs
+          defaultActiveKey="1"
+          items={tabItems}
+          tabBarExtraContent={
+            <Button
+              type="primary"
+              className="dashboard-action-btn"
+              onClick={() => setOpenAddTheatreSignal((prev) => prev + 1)}
+            >
+              Add Theatre
+            </Button>
+          }
+        />
       </div>
     </div>
   );
