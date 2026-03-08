@@ -65,3 +65,34 @@ app.use((req, res, next) => {
 app.listen(8082, () => {
     console.log("Server is Running");
 });
+
+
+// For deploying project
+const path = require("path");
+const express = require("express");
+const app = express();
+
+const clientBuildPath = path.join(__dirname, "../client/build");
+console.log(clientBuildPath);
+
+app.use(express.static(clientBuildPath));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(clientBuildPath, "index.html"));
+});
+
+// For deploying project
+const cors = require("cors");
+const express = require("express");
+const app = express();
+
+// Example production-safe CORS (adjust origin as needed)
+app.use(
+  cors({
+    origin: "https://book-tamasha-for-me.onrender.com/", // Replace with your frontend origin in production (e.g., "https://your-frontend.com")
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+``
+```

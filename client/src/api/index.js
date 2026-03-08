@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || "/",
+    baseURL: "https://book-tamasha-for-me.onrender.com/" || "/",
     headers: {
         "Content-Type": "application/json",
         // "withCredentials": true // automatically sends cookies with req
