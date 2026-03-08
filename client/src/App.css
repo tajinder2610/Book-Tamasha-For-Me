@@ -125,7 +125,9 @@
   line-height: 1;
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.45));
   text-shadow: 0 2px 3px rgba(0, 0, 0, 0.35);
-  animation: runnerBob 0.75s ease-in-out infinite;
+  animation: runnerSnake 1100ms ease-in-out infinite;
+  transform-origin: center bottom;
+  will-change: transform;
 }
 
 .runner-group .runner-icon + .runner-icon {
@@ -138,6 +140,26 @@
 
 .runner-group .runner-icon:nth-child(even) {
   z-index: 1;
+}
+
+.runner-group .runner-icon:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.runner-group .runner-icon:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.runner-group .runner-icon:nth-child(3) {
+  animation-delay: 220ms;
+}
+
+.runner-group .runner-icon:nth-child(4) {
+  animation-delay: 320ms;
+}
+
+.runner-group .runner-icon:nth-child(5) {
+  animation-delay: 420ms;
 }
 
 .app-header-animated .ant-menu,
@@ -1134,13 +1156,25 @@ hr {
   }
 }
 
-@keyframes runnerBob {
+@keyframes runnerSnake {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translate(0, 0) rotate(-4deg) scale(1, 1);
+  }
+  16% {
+    transform: translate(2px, -6px) rotate(4deg) scale(1.03, 0.98);
+  }
+  33% {
+    transform: translate(-3px, -2px) rotate(-5deg) scale(0.99, 1.02);
   }
   50% {
-    transform: translateY(-1.5px);
+    transform: translate(3px, 1px) rotate(5deg) scale(1.02, 0.99);
+  }
+  68% {
+    transform: translate(-2px, -4px) rotate(-4deg) scale(1.01, 1);
+  }
+  84% {
+    transform: translate(2px, -1px) rotate(3deg) scale(1, 1.01);
   }
 }
 
