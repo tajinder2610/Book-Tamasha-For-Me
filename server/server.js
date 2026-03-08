@@ -5,6 +5,10 @@ const helmet = require("helmet");
 const mongoSanitize = require('express-mongo-sanitize');
 const app = express();
 
+const path = require("path");
+const cors = require("cors");
+const express = require("express");
+
 require("dotenv").config(); //load .env variables into process.env object
 
 const connectDB = require("./config/db");
@@ -68,10 +72,6 @@ app.listen(8082, () => {
 
 
 // For deploying project
-const path = require("path");
-const express = require("express");
-const app = express();
-
 const clientBuildPath = path.join(__dirname, "../client/build");
 console.log(clientBuildPath);
 
@@ -82,10 +82,6 @@ app.get("*", (req, res) => {
 });
 
 // For deploying project
-const cors = require("cors");
-const express = require("express");
-const app = express();
-
 // Example production-safe CORS (adjust origin as needed)
 app.use(
   cors({
