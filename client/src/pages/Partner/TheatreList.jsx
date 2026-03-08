@@ -3,7 +3,7 @@ import { Table, Button, message } from "antd";
 import TheatreFormModal from "./TheatreFormModal";
 import DeleteTheatreModal from "./DeleteTheatreModal";
 import ShowModal from "./ShowModal";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { GetAllTheatresOfPartner } from "../../api/theatres";
 import { useSelector, useDispatch } from "react-redux";
 import { showLoading, hideLoading } from "../../../redux/loaderSlice";
@@ -84,8 +84,11 @@ function TheatreList() {
       title: "Action",
       render: (text, data) => {
         return (
-          <div className="d-flex align-items-center gap-10">
+          <div className="partner-action-row">
             <Button
+              size="small"
+              type="text"
+              icon={<EditOutlined />}
               onClick={() => {
                 // set isModalOpen to true
                 setIsModalOpen(true);
@@ -94,27 +97,30 @@ function TheatreList() {
                 // set form type to edit
                 setFormType("edit");
               }}
-            >
-              <EditOutlined />
-            </Button>
+            />
             <Button
+              size="small"
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
               onClick={() => {
                 // set isDeleteModalOpen to true
                 setIsDeleteModalOpen(true);
                 // set selected movie
                 setSelectedTheatre(data);
               }}
-            >
-              <DeleteOutlined />
-            </Button>
+            />
             {data.isActive && (
               <Button
+                size="small"
+                type="default"
+                icon={<PlusOutlined />}
                 onClick={() => {
                   setIsShowModalOpen(true);
                   setSelectedTheatre(data);
                 }}
               >
-                + Shows
+                Shows
               </Button>
             )}
           </div>
@@ -136,7 +142,13 @@ function TheatreList() {
           Add Theatre
         </Button>
       </div>
-      <Table dataSource={theatres} columns={columns} />
+      <Table
+        className="partner-theatre-table"
+        dataSource={theatres}
+        columns={columns}
+        pagination={{ pageSize: 5, showSizeChanger: false }}
+        scroll={{ x: 980 }}
+      />
       {isModalOpen && (
         <TheatreFormModal
           isModalOpen={isModalOpen}

@@ -24,6 +24,14 @@
   text-align: center;
 }
 
+.d-flex {
+  display: flex;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
 .cursor-pointer {
   cursor: pointer;
 }
@@ -1000,6 +1008,21 @@ hr {
   font-weight: 600;
 }
 
+.partner-theatre-table .ant-table-cell {
+  vertical-align: middle !important;
+}
+
+.partner-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.partner-action-row .ant-btn {
+  min-height: 32px;
+}
+
 /* Loader */
 .loader-container {
   position: fixed;
@@ -1243,6 +1266,12 @@ hr {
   }
   .dashboard-tabs-wrap {
     padding: 8px;
+  }
+  .partner-action-row {
+    gap: 6px;
+  }
+  .partner-action-row .ant-btn {
+    min-height: 30px;
   }
   .home-shell {
     gap: 0;
