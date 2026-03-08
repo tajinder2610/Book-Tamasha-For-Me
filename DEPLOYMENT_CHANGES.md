@@ -39,6 +39,11 @@ This file documents the Render deployment fixes applied to `server/server.js`.
 - Change: Removed stray markdown/code-fence artifacts from `server.js`.
 - Why: Those artifacts caused `SyntaxError: Unexpected end of input` during startup.
 
+## 8) Added missing `cors` dependency
+
+- Change: Added `"cors": "^2.8.5"` to `server/package.json`.
+- Why: Render startup failed with `Error: Cannot find module 'cors'` because `server.js` imports `cors` but it was not declared as a dependency.
+
 ## Recommended Render Environment Variables
 
 - `DB_URL`
@@ -46,4 +51,3 @@ This file documents the Render deployment fixes applied to `server/server.js`.
 - `RESEND_API_KEY`
 - `STRIPE_SECRET_KEY`
 - `CLIENT_URL=https://book-tamasha-for-me.onrender.com`
-
