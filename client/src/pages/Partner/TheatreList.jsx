@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Table, Button, message } from "antd";
 import TheatreFormModal from "./TheatreFormModal";
 import DeleteTheatreModal from "./DeleteTheatreModal";
@@ -18,7 +18,9 @@ function TheatreList({ openAddTheatreSignal = 0 }) {
   const [theatres, setTheatres] = useState(null);
   const dispatch = useDispatch();
 
-  const getData = async () => {
+  // Old code:
+  // const getData = async () => {
+  const getData = useCallback(async () => {
     try {
       dispatch(showLoading());
       // call axios instance function to get all theatres
@@ -42,11 +44,15 @@ function TheatreList({ openAddTheatreSignal = 0 }) {
       dispatch(hideLoading());
       message.error(err.message);
     }
-  };
+  }, [dispatch, user?._id]);
 
+  // Old code:
+  // useEffect(() => {
+  //   getData();
+  // }, []);
   useEffect(() => {
     getData();
-  }, []);
+  }, [getData]);
 
   useEffect(() => {
     if (openAddTheatreSignal > 0) {

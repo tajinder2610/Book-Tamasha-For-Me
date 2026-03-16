@@ -1,18 +1,4 @@
 const Show = require("../models/showModel");
-const { redisClient, isRedisReady } = require("../config/redis");
-
-const SEAT_MAP_CACHE_TTL_SECONDS = 60;
-const getSeatMapCacheKey = (showId) => `seatmap:show:${showId}`;
-
-const invalidateSeatMapCache = async (showId) => {
-  // old code:
-  // There was no seat-map cache invalidation before Redis caching was added.
-  if (!showId || !isRedisReady()) {
-    return;
-  }
-
-  await redisClient.del(getSeatMapCacheKey(showId));
-};
 
 exports.addShow = async (req, res) => {
   try {
@@ -34,10 +20,7 @@ exports.addShow = async (req, res) => {
 exports.deleteShow = async (req, res) => {
   try {
     const { showId } = req.params;
-    // old code:
-    // await Show.findByIdAndDelete(showId);
     await Show.findByIdAndDelete(showId);
-    await invalidateSeatMapCache(showId);
     res.json({
       success: true,
       message: "The show has been deleted!",
@@ -54,10 +37,7 @@ exports.updateShow = async (req, res) => {
   try {
     const { showId } = req.params;
     const updatedData = req.body;
-    // old code:
-    // await Show.findByIdAndUpdate(showId, updatedData);
     await Show.findByIdAndUpdate(showId, updatedData);
-    await invalidateSeatMapCache(showId);
     res.json({
       success: true,
       message: "The show has been updated!",
@@ -143,37 +123,9 @@ exports.showsByTheatre = async (req, res) => {
 exports.showById = async (req, res) => {
   try {
     const {showId} = req.params;
-
-    // old code:
-    // const show = await Show.findById(showId)
-    // .populate("movie")
-    // .populate("theatre");
-
-    if (isRedisReady()) {
-      // old code:
-      // The handler always fetched directly from MongoDB and returned that result.
-      const cachedSeatMap = await redisClient.get(getSeatMapCacheKey(showId));
-      if (cachedSeatMap) {
-        return res.json({
-          success: true,
-          message: "show fetched from redis cache",
-          data: JSON.parse(cachedSeatMap),
-        });
-      }
-    }
-
     const show = await Show.findById(showId)
-      .populate("movie")
-      .populate("theatre");
-
-    if (show && isRedisReady()) {
-      // old code:
-      // The MongoDB result was returned directly without being cached.
-      await redisClient.set(getSeatMapCacheKey(showId), JSON.stringify(show), {
-        EX: SEAT_MAP_CACHE_TTL_SECONDS,
-      });
-    }
-
+    .populate("movie")
+    .populate("theatre");
     res.json({
         success: true,
         message: "show fetched",
@@ -186,5 +138,3 @@ exports.showById = async (req, res) => {
     });
   }
 };
-
-module.exports.invalidateSeatMapCache = invalidateSeatMapCache;

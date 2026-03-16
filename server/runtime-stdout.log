@@ -1,2 +1,0 @@
-[dotenv@17.2.3] injecting env (6) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
-Server is Running on port 8082

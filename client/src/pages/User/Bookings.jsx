@@ -1,5 +1,5 @@
 import { Button, Card, Col, Row, Tag, Typography, message } from "antd";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { hideLoading, showLoading } from "../../../redux/loaderSlice";
 import { GetAllBookings } from "../../api/bookings";
 import { useDispatch } from "react-redux";
@@ -43,7 +43,9 @@ const Bookings = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.users);
 
-  const getData = async () => {
+  // Old code:
+  // const getData = async () => {
+  const getData = useCallback(async () => {
     if (!user?._id) return;
     try {
       dispatch(showLoading());
@@ -61,11 +63,15 @@ const Bookings = () => {
       message.error(err.message);
       dispatch(hideLoading());
     }
-  };
+  }, [dispatch, user?._id]);
 
+  // Old code:
+  // useEffect(() => {
+  //   getData();
+  // }, [user?._id]);
   useEffect(() => {
     getData();
-  }, [user?._id]);
+  }, [getData]);
 
   const handleQrError = async (booking) => {
     if (qrFallbackMap[booking._id]) return;

@@ -1,0 +1,15 @@
+# old code:
+# Kubernetes support is optional in this project. These manifests do not affect the current runtime setup unless they are explicitly applied to a cluster.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookmyshow-app
+  namespace: bookmyshow
+spec:
+  selector:
+    app: bookmyshow-app
+  ports:
+    - port: 80
+      targetPort: 8082
+  type: LoadBalancer

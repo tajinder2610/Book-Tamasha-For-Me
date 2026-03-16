@@ -4,15 +4,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "worker:bookings": "node workers/bookingWorker.js"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "amqplib": "^0.10.9",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
@@ -27,8 +25,6 @@
     "mongoose": "^8.23.0",
     "nodemailer": "^7.0.10",
     "otp-generator": "^4.0.1",
-    "rate-limit-redis": "^4.3.1",
-    "redis": "^5.11.0",
     "resend": "^6.9.3",
     "stripe": "^20.0.0"
   },

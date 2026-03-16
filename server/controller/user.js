@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const emailHelper = require("../utils/emailHelper");
 const bcrypt = require("bcrypt");
 const otpGenerator = require("otp-generator");
-const { redisClient, isRedisReady } = require("../config/redis");
 
 exports.registerUser = async (req, res) => {
   try {
@@ -113,20 +112,9 @@ exports.forgetPassword = async (req, res) => {
       specialChars: false
     });
 
-    // old code:
-    // user.otp = otp;
-    // user.otpExpiry = Date.now() + 10 * 60 * 1000;
-    // await user.save();
-
-    if (isRedisReady()) {
-      await redisClient.set(`otp:${email}`, otp, {
-        EX: 10 * 60,
-      });
-    } else {
-      user.otp = otp;
-      user.otpExpiry = Date.now() + 10 * 60 * 1000;
-      await user.save();
-    }
+    user.otp = otp;
+    user.otpExpiry = Date.now() + 10 * 60 * 1000;
+    await user.save();
 
     let emailSent = true;
     try {
@@ -160,46 +148,18 @@ exports.resetPassword = async (req, res) => {
   try {
     const {otp, password} = req.body;
     const {email} = req.params;
-    // old code:
-    // const user = await User.findOne({email, otp});
-
-    const user = await User.findOne({email});
+    //if otp is valid
+    const user = await User.findOne({email, otp});
     if (!user) {
       return res.status(404).json({
-        message: "Invalid email",
+        message: "Invalid OTP or email",
         success: false,
       });
     }
-
-    const savedOtp = isRedisReady()
-      ? await redisClient.get(`otp:${email}`)
-      : user.otp;
-
-    // old code:
-    // if(Date.now()> user.otpExpiry){
-    //   return res.status(401).json({
-    //     message: "otp expired",
-    //     success: false,
-    //   });
-    // }
-
-    if (!savedOtp) {
-      return res.status(401).json({
-        message: "otp expired or not generated",
-        success: false,
-      });
-    }
-
-    if (!isRedisReady() && Date.now() > user.otpExpiry) {
+    //if otp is expired - 10min timer
+    if(Date.now()> user.otpExpiry){
       return res.status(401).json({
         message: "otp expired",
-        success: false,
-      });
-    }
-
-    if (savedOtp !== otp) {
-      return res.status(401).json({
-        message: "Invalid OTP",
         success: false,
       });
     }
@@ -207,17 +167,9 @@ exports.resetPassword = async (req, res) => {
     //update new password to db
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
-    // old code:
-    // user.otp = undefined;
-    // user.otpExpiry = undefined;
-    if (!isRedisReady()) {
-      user.otp = undefined;
-      user.otpExpiry = undefined;
-    }
+    user.otp = undefined;
+    user.otpExpiry = undefined;
     await user.save()
-    if (isRedisReady()) {
-      await redisClient.del(`otp:${email}`);
-    }
 
     return res.status(200).json({
       message: "password reset successfully",

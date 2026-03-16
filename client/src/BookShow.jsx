@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../redux/loaderSlice";
 import { ShowById } from "./api/shows";
@@ -18,7 +18,9 @@ function BookShow() {
 
   const STRIPE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
-  const getData = async () => {
+  // Old code:
+  // const getData = async () => {
+  const getData = useCallback(async () => {
     try {
       dispatch(showLoading());
       const response = await ShowById(params.id);
@@ -34,11 +36,15 @@ function BookShow() {
       message.error(err.message);
       dispatch(hideLoading());
     }
-  };
+  }, [dispatch, params.id]);
 
+  // Old code:
+  // useEffect(() => {
+  //   getData();
+  // }, [params.id]);
   useEffect(() => {
     getData();
-  }, [params.id]);
+  }, [getData]);
 
   const selectedSeatsSorted = [...selectedSeats].sort((a, b) => a - b);
   const availableSeats = show ? show.totalSeats - show.bookedSeats.length : 0;

@@ -1,0 +1,13 @@
+# old code:
+# Kubernetes support is optional in this project. These manifests do not affect the current runtime setup unless they are explicitly applied to a cluster.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bookmyshow-app-config
+  namespace: bookmyshow
+data:
+  PORT: "8082"
+  CLIENT_URL: "http://localhost:8082"
+  REDIS_URL: "redis://redis:6379"
+  RABBITMQ_URL: "amqp://rabbitmq:5672"

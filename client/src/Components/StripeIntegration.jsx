@@ -5,7 +5,9 @@ import axios from 'axios';
 
 
 function StripeIntegration() {
- const [selectedSeats, setSelectedSeats] = useState([1, 2]); // Example selected seats
+ // Old code:
+ // const [selectedSeats, setSelectedSeats] = useState([1, 2]);
+ const [selectedSeats] = useState([1, 2]); // Example selected seats
  const ticketPrice = 300; // Assume each ticket costs $10
 
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Button, Table } from "antd";
 import MovieForm from "./MovieForm";
 import { hideLoading, showLoading } from "../../../redux/loaderSlice";
@@ -97,7 +97,9 @@ function MovieList({ openAddMovieSignal = 0 }) {
    },
  ];
 
- const getData = async () => {
+ // Old code:
+ // const getData = async () => {
+ const getData = useCallback(async () => {
    dispatch(showLoading());
    // call axios instance function to get all movies
    const allMovies = await GetAllMovies();
@@ -106,11 +108,15 @@ function MovieList({ openAddMovieSignal = 0 }) {
    // update the movie state with the response
    setMovies(allMovies.data?.map(movie => ({...movie, key:`movie${movie._id}`})));
    dispatch(hideLoading());
- };
+ }, [dispatch]);
 
+ // Old code:
+ // useEffect(() => {
+ //   getData();
+ // }, []);
  useEffect(() => {
    getData();
- }, []);
+ }, [getData]);
 
  useEffect(() => {
    if (openAddMovieSignal > 0) {

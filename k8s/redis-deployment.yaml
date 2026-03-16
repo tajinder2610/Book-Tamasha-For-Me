@@ -1,0 +1,23 @@
+# old code:
+# Kubernetes support is optional in this project. These manifests do not affect the current runtime setup unless they are explicitly applied to a cluster.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: bookmyshow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379

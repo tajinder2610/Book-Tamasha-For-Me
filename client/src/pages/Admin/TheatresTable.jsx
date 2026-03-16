@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {Table, message, Button} from "antd";
 import { useDispatch } from 'react-redux';
 import { hideLoading, showLoading } from '../../../redux/loaderSlice';
@@ -6,7 +6,9 @@ import { GetAllTheatres, UpdateTheatre } from '../../api/theatres';
 function TheatresTable() {
   const dispatch = useDispatch();
   const [theatres, setTheatres] = useState(null);
-  const getData = async () => {
+  // Old code:
+  // const getData = async () => {
+  const getData = useCallback(async () => {
     try {
       dispatch(showLoading());
       // call axios instance function to get all theatres
@@ -30,11 +32,15 @@ function TheatresTable() {
       dispatch(hideLoading());
       message.error(err.message);
     }
-  };
+  }, [dispatch]);
 
+  // Old code:
+  // useEffect(() => {
+  //   getData();
+  // }, []);
   useEffect(() => {
     getData();
-  }, []);
+  }, [getData]);
 
   const handleStatusChange = async(theatre) => {
     try{

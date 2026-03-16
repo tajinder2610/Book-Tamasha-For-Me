@@ -25,12 +25,15 @@ export const LoginUser = async(value) => {
 }
 
 export const CurrentUser = async() => {
-    try{
-        const response = await axiosInstance.get("/api/users/get-current-user");
-        return response.data?.data;
-    }catch(err){
-        throw err;
-    }
+    // Old code:
+    // try{
+    //     const response = await axiosInstance.get("/api/users/get-current-user");
+    //     return response.data?.data;
+    // }catch(err){
+    //     throw err;
+    // }
+    const response = await axiosInstance.get("/api/users/get-current-user");
+    return response.data?.data;
 }
 
 export const ForgetPassword = async(value) => {

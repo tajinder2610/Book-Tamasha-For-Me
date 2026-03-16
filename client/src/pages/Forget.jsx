@@ -26,11 +26,17 @@ function Forget() {
      message.error(error.message);
    }
  };
+ // Old code:
+ // useEffect(() => {
+ //   if (localStorage.getItem("token")) {
+ //     navigate("/");
+ //   }
+ // }, []);
  useEffect(() => {
    if (localStorage.getItem("token")) {
      navigate("/");
    }
- }, []);
+ }, [navigate]);
  return (
      <main className="auth-shell">
        <section className="auth-card">

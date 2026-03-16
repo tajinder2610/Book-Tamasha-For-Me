@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { GetMovieById } from "./api/movies";
 import { useDispatch } from "react-redux";
@@ -21,7 +21,9 @@ const SingleMovie = () => {
     navigate(`/movie/${params.id}?date=${e.target.value}`);
   };
 
-  const getData = async () => {
+  // Old code:
+  // const getData = async () => {
+  const getData = useCallback(async () => {
     try {
       dispatch(showLoading());
       const response = await GetMovieById(params.id);
@@ -35,9 +37,11 @@ const SingleMovie = () => {
       message.error(err.message);
       dispatch(hideLoading());
     }
-  };
+  }, [dispatch, params.id]);
 
-  const getAllTheatres = async () => {
+  // Old code:
+  // const getAllTheatres = async () => {
+  const getAllTheatres = useCallback(async () => {
     try {
       dispatch(showLoading());
       const response = await GetTheatreAndShowsByMovieAndDate(params.id, date);
@@ -51,15 +55,23 @@ const SingleMovie = () => {
       dispatch(hideLoading());
       message.error(err.message);
     }
-  };
+  }, [date, dispatch, params.id]);
 
+  // Old code:
+  // useEffect(() => {
+  //   getData();
+  // }, []);
   useEffect(() => {
     getData();
-  }, []);
+  }, [getData]);
 
+  // Old code:
+  // useEffect(() => {
+  //   getAllTheatres();
+  // }, [date]);
   useEffect(() => {
     getAllTheatres();
-  }, [date]);
+  }, [getAllTheatres]);
 
   return (
     <div style={{ width: "100%" }}>

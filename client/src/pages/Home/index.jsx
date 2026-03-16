@@ -15,7 +15,7 @@ const Home = () => {
   const navigate = useNavigate();
 
   // Fetch movies from API
-  const getData = async () => {
+  const getData = useCallback(async () => {
     try {
       dispatch(showLoading());
       const resp = await GetAllMovies();
@@ -29,19 +29,32 @@ const Home = () => {
     } finally {
       dispatch(hideLoading());
     }
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     getData();
-  }, []);
+  }, [getData]);
 
-  // Debounced search handler
-  const handleSearch = useCallback(
-    debounce((value) => {
-      setSearchText(value);
-    }, 300),
+  // Old code:
+  // const handleSearch = useCallback(
+  //   debounce((value) => {
+  //     setSearchText(value);
+  //   }, 300),
+  //   []
+  // );
+  const handleSearch = useMemo(
+    () =>
+      debounce((value) => {
+        setSearchText(value);
+      }, 300),
     []
   );
+
+  useEffect(() => {
+    return () => {
+      handleSearch.cancel();
+    };
+  }, [handleSearch]);
 
   // Filter movies based on search text
   const filteredMovies = useMemo(() => {

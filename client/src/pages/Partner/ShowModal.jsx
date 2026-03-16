@@ -3,7 +3,7 @@ import { showLoading, hideLoading } from "../../../redux/loaderSlice";
 import { useDispatch } from "react-redux";
 // import { addTheatre, updateTheatre } from '../../apicalls/theatres';
 import {ArrowLeftOutlined,EditOutlined,DeleteOutlined,} from "@ant-design/icons";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 // import { useSelector } from 'react-redux';
 import { GetAllMovies } from "../../api/movies";
 import {
@@ -26,7 +26,9 @@ const ShowModal = ({
   const [selectedShow, setSelectedShow] = useState(null);
   const dispatch = useDispatch();
 
-  const getData = async () => {
+  // Old code:
+  // const getData = async () => {
+  const getData = useCallback(async () => {
     try {
       dispatch(showLoading());
       const movieResponse = await GetAllMovies();
@@ -48,7 +50,7 @@ const ShowModal = ({
       message.error(err.message);
       dispatch(hideLoading());
     }
-  };
+  }, [dispatch, selectedTheatre?._id]);
 
   const onFinish = async (values) => {
     try {
@@ -107,14 +109,18 @@ const ShowModal = ({
     {
       title: "Show Date",
       dataIndex: "date",
-      render: (text, data) => {
+      // Old code:
+      // render: (text, data) => {
+      render: (text) => {
         return moment(text).format("MMM Do YYYY");
       },
     },
     {
       title: "Show Time",
       dataIndex: "time",
-      render: (text, data) => {
+      // Old code:
+      // render: (text, data) => {
+      render: (text) => {
         return moment(text, "HH:mm").format("hh:mm A");
       },
     },
@@ -179,9 +185,13 @@ const ShowModal = ({
     },
   ];
 
+  // Old code:
+  // useEffect(() => {
+  //   getData();
+  // }, [selectedTheatre?._id]);
   useEffect(() => {
     getData();
-  }, []);
+  }, [getData]);
 
   return (
     <Modal

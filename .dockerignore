@@ -1,0 +1,14 @@
+# old code:
+# Docker support is optional in this project. This file exists only for containerized builds and does not affect the current runtime setup unless Docker is used.
+
+.git
+.gitignore
+node_modules
+client/node_modules
+server/node_modules
+client/dist
+client/build
+server/.env
+npm-debug.log
+*.log
+coverage

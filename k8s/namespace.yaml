@@ -1,0 +1,7 @@
+# old code:
+# Kubernetes support is optional in this project. These manifests do not affect the current runtime setup unless they are explicitly applied to a cluster.
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bookmyshow

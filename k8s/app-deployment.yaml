@@ -1,0 +1,40 @@
+# old code:
+# Kubernetes support is optional in this project. These manifests do not affect the current runtime setup unless they are explicitly applied to a cluster.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookmyshow-app
+  namespace: bookmyshow
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bookmyshow-app
+  template:
+    metadata:
+      labels:
+        app: bookmyshow-app
+    spec:
+      containers:
+        - name: app
+          image: your-dockerhub-username/bookmyshow:latest
+          ports:
+            - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: bookmyshow-app-config
+            - secretRef:
+                name: bookmyshow-app-secret
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8082
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8082
+            initialDelaySeconds: 20
+            periodSeconds: 20
