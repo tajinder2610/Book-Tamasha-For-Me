@@ -1,0 +1,5 @@
+[dotenv@17.2.3] injecting env (6) from .env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+Server is Running on port 8082
+connected to redis
+connected to rabbitmq
+connected to db

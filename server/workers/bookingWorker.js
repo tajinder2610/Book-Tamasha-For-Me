@@ -1,0 +1,26 @@
+require("dotenv").config();
+
+// old code:
+// There was no separate worker process for booking background jobs before RabbitMQ integration.
+
+const { QUEUES, connectRabbitMQ, consumeQueue } = require("../config/rabbitmq");
+const { sendTicketEmail } = require("../utils/ticketEmail");
+
+const startWorker = async () => {
+  const channel = await connectRabbitMQ();
+  if (!channel) {
+    process.exitCode = 1;
+    return;
+  }
+
+  await consumeQueue(QUEUES.ticketEmail, async (payload) => {
+    await sendTicketEmail(payload);
+  });
+
+  console.log(`booking worker is consuming queue: ${QUEUES.ticketEmail}`);
+};
+
+startWorker().catch((err) => {
+  console.error("booking worker failed:", err.message);
+  process.exit(1);
+});

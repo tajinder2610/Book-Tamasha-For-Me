@@ -1,11 +1,13 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
+const { RedisStore } = require("rate-limit-redis");
 const helmet = require("helmet");
 const mongoSanitize = require('express-mongo-sanitize');
 const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
+const mongoose = require("mongoose");
 const app = express();
 
 require("dotenv").config(); //load .env variables into process.env object
@@ -15,6 +17,10 @@ require("dotenv").config(); //load .env variables into process.env object
 app.set("trust proxy", 1);
 
 const connectDB = require("./config/db");
+const { redisClient, connectRedis, isRedisReady } = require("./config/redis");
+// old code:
+// There was no RabbitMQ config import before queue integration.
+const { connectRabbitMQ, isRabbitReady } = require("./config/rabbitmq");
 const userRouter = require("./routes/userRoute");
 const movieRouter = require("./routes/movieRoute");
 const theatreRouter = require("./routes/theatreRoute");
@@ -22,17 +28,68 @@ const bookingRouter = require("./routes/bookingRoute");
 const showRouter = require("./routes/showRoute");
 const seedAdmin = require("./seedAdmin");
 
-// connect to DB THEN seed admin
-connectDB().then(() => {
-  seedAdmin();  // <-- SAFE, runs only if admin doesn't exist
+// old code:
+// connectDB().then(() => {
+//   seedAdmin();  // <-- SAFE, runs only if admin doesn't exist
+// });
+
+// old code:
+// Promise.all([connectDB(), connectRedis()]).then(() => {
+//   seedAdmin();
+// });
+// old code:
+// Promise.all([connectDB(), connectRedis(), connectRabbitMQ()]).then(() => {
+//   seedAdmin();  // <-- SAFE, runs only if admin doesn't exist
+// });
+// connect to DB, Redis, and RabbitMQ without crashing the process if one dependency is down
+Promise.allSettled([connectDB(), connectRedis(), connectRabbitMQ()])
+  .then(async (results) => {
+    const [dbResult] = results;
+    const isDbConnected = dbResult.status === "fulfilled" && dbResult.value === true;
+
+    if (isDbConnected) {
+      await seedAdmin();  // <-- SAFE, runs only if admin doesn't exist
+      return;
+    }
+
+    console.error("Skipping admin seed because database connection is not ready");
+  })
+  .catch((err) => {
+    console.error("Startup dependency initialization failed:", err.message);
+  });
+
+const rateLimitConfig = {
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: "Too many requests from this IP, please try again after 15 minutes.",
+};
+
+// old code:
+// const apiLimiter = rateLimit({
+//     windowMs: 15*60*1000,
+//     max: 100,
+//     message: "Too many requests from this IP, please try again after 15 minutes."
+// });
+// app.use("/api",apiLimiter);
+
+const memoryApiLimiter = rateLimit(rateLimitConfig);
+const redisApiLimiter = rateLimit({
+  ...rateLimitConfig,
+  store: new RedisStore({
+    sendCommand: (...args) => redisClient.sendCommand(args),
+    prefix: "rate-limit:",
+  }),
 });
 
-const apiLimiter = rateLimit({
-    windowMs: 15*60*1000,
-    max: 100,
-    message: "Too many requests from this IP, plsease try again after 15 minutes."
+app.use("/api", (req, res, next) => {
+  // old code:
+  // return apiLimiter(req, res, next);
+  if (isRedisReady()) {
+    return redisApiLimiter(req, res, next);
+  }
+
+  return memoryApiLimiter(req, res, next);
 });
-app.use("/api",apiLimiter);
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
@@ -64,6 +121,34 @@ app.use(
 app.use(mongoSanitize());
 app.use(cookieParser());
 app.use(express.json());
+
+app.get("/healthz", (req, res) => {
+  res.status(200).json({ ok: true });
+});
+
+app.get("/readyz", (req, res) => {
+  const isDbReady = mongoose.connection.readyState === 1;
+  const redisReady = isRedisReady();
+  // old code:
+  // /readyz only reported database and Redis readiness before RabbitMQ integration.
+  const rabbitReady = isRabbitReady();
+
+  if (!isDbReady) {
+    return res.status(503).json({
+      ok: false,
+      db: isDbReady,
+      redis: redisReady,
+      rabbitmq: rabbitReady,
+    });
+  }
+
+  return res.status(200).json({
+    ok: true,
+    db: isDbReady,
+    redis: redisReady,
+    rabbitmq: rabbitReady,
+  });
+});
 
 app.use("/api/users", userRouter);
 app.use("/api/movies", movieRouter);
