@@ -1,7 +1,10 @@
 const Booking = require('../models/bookingModel');
 const Show = require('../models/showModel');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Use your secret key here
-const emailHelper = require("../utils/emailHelper");
+// old code:
+// const emailHelper = require("../utils/emailHelper");
+const { enqueueTicketEmail } = require("../queues/bookingQueue");
+const { buildTicketEmailPayload } = require("../utils/ticketEmail");
 
 const hydrateBooking = async (bookingId) => {
   return Booking.findById(bookingId)
@@ -48,35 +51,47 @@ const createBookingRecord = async ({ showId, seats, transactionId, userId }) => 
   await Show.findByIdAndUpdate(showId, { bookedSeats: updatedBookedSeats });
 
   const bookingData = await hydrateBooking(newBooking._id);
-  const sortedSeats = [...(bookingData.seats || [])].sort((a, b) => a - b).join(", ");
-  const qrPayload = [
-    `BookingId:${bookingData._id}`,
-    `TransactionId:${bookingData.transactionId}`,
-    `Movie:${bookingData.show.movie.title}`,
-    `Name:${bookingData.user.name}`,
-    `Theatre:${bookingData.show.theatre.name}`,
-    `Date:${bookingData.show.date}`,
-    `Time:${bookingData.show.time}`,
-    `Seats:${sortedSeats}`,
-    `Amount:${bookingData.seats.length * bookingData.show.ticketPrice}`,
-  ].join("|");
-  const qrCodeUrl = `https://quickchart.io/qr?size=220&text=${encodeURIComponent(qrPayload)}`;
+  const ticketEmailPayload = buildTicketEmailPayload(bookingData);
 
   try {
-    await emailHelper("ticket.html", bookingData.user.email, {
-      movie: bookingData.show.movie.title,
-      name: bookingData.user.name,
-      theatre: bookingData.show.theatre.name,
-      date: bookingData.show.date,
-      time: bookingData.show.time,
-      seats: sortedSeats,
-      amount: bookingData.seats.length * bookingData.show.ticketPrice,
-      transactionId: bookingData.transactionId,
-      bookingId: bookingData._id,
-      qrCodeUrl,
-    });
-  } catch (emailErr) {
-    console.log("Ticket email failed:", emailErr.message);
+    // old code:
+    // const sortedSeats = [...(bookingData.seats || [])].sort((a, b) => a - b).join(", ");
+    // const qrPayload = [
+    //   `BookingId:${bookingData._id}`,
+    //   `TransactionId:${bookingData.transactionId}`,
+    //   `Movie:${bookingData.show.movie.title}`,
+    //   `Name:${bookingData.user.name}`,
+    //   `Theatre:${bookingData.show.theatre.name}`,
+    //   `Date:${bookingData.show.date}`,
+    //   `Time:${bookingData.show.time}`,
+    //   `Seats:${sortedSeats}`,
+    //   `Amount:${bookingData.seats.length * bookingData.show.ticketPrice}`,
+    // ].join("|");
+    // const qrCodeUrl = `https://quickchart.io/qr?size=220&text=${encodeURIComponent(qrPayload)}`;
+    // await emailHelper("ticket.html", bookingData.user.email, {
+    //   movie: bookingData.show.movie.title,
+    //   name: bookingData.user.name,
+    //   theatre: bookingData.show.theatre.name,
+    //   date: bookingData.show.date,
+    //   time: bookingData.show.time,
+    //   seats: sortedSeats,
+    //   amount: bookingData.seats.length * bookingData.show.ticketPrice,
+    //   transactionId: bookingData.transactionId,
+    //   bookingId: bookingData._id,
+    //   qrCodeUrl,
+    // });
+    const queueResult = await enqueueTicketEmail(ticketEmailPayload);
+    if (queueResult.queued) {
+      console.log("Ticket email queued", {
+        bookingId: bookingData._id,
+      });
+    } else {
+      console.log("Ticket email sent without queue fallback", {
+        bookingId: bookingData._id,
+      });
+    }
+  } catch (queueErr) {
+    console.log("Ticket email dispatch failed:", queueErr.message);
   }
 
   return bookingData;

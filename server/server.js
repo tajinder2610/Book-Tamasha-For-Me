@@ -6,6 +6,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
+const mongoose = require("mongoose");
 const app = express();
 
 require("dotenv").config(); //load .env variables into process.env object
@@ -15,6 +16,9 @@ require("dotenv").config(); //load .env variables into process.env object
 app.set("trust proxy", 1);
 
 const connectDB = require("./config/db");
+// old code:
+// There was no RabbitMQ config import before queue integration.
+const { connectRabbitMQ, isRabbitReady } = require("./config/rabbitmq");
 const userRouter = require("./routes/userRoute");
 const movieRouter = require("./routes/movieRoute");
 const theatreRouter = require("./routes/theatreRoute");
@@ -22,8 +26,12 @@ const bookingRouter = require("./routes/bookingRoute");
 const showRouter = require("./routes/showRoute");
 const seedAdmin = require("./seedAdmin");
 
-// connect to DB THEN seed admin
-connectDB().then(() => {
+// old code:
+// connectDB().then(() => {
+//   seedAdmin();  // <-- SAFE, runs only if admin doesn't exist
+// });
+// connect to DB and RabbitMQ, then seed admin
+Promise.all([connectDB(), connectRabbitMQ()]).then(() => {
   seedAdmin();  // <-- SAFE, runs only if admin doesn't exist
 });
 
@@ -64,6 +72,31 @@ app.use(
 app.use(mongoSanitize());
 app.use(cookieParser());
 app.use(express.json());
+
+app.get("/healthz", (req, res) => {
+  res.status(200).json({ ok: true });
+});
+
+app.get("/readyz", (req, res) => {
+  const isDbReady = mongoose.connection.readyState === 1;
+  // old code:
+  // /readyz did not exist before RabbitMQ integration.
+  const rabbitReady = isRabbitReady();
+
+  if (!isDbReady) {
+    return res.status(503).json({
+      ok: false,
+      db: isDbReady,
+      rabbitmq: rabbitReady,
+    });
+  }
+
+  return res.status(200).json({
+    ok: true,
+    db: isDbReady,
+    rabbitmq: rabbitReady,
+  });
+});
 
 app.use("/api/users", userRouter);
 app.use("/api/movies", movieRouter);

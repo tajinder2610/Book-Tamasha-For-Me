@@ -40,6 +40,7 @@ Apache Kafka was not chosen because:
 
 Current use:
 - ticket email jobs after successful booking
+- failed ticket email jobs are moved to a dead-letter queue (`ticket_email_v2_dlq` by default)
 
 Good future candidates:
 - SMS/notification jobs
@@ -134,7 +135,8 @@ File: `server/config/rabbitmq.js`
 What changed:
 
 - Added shared RabbitMQ connection logic
-- Added queue declaration for `ticket_email`
+- Added queue declaration for `ticket_email_v2`
+- Added queue declaration for `ticket_email_v2_dlq`
 - Added helper functions to publish and consume queue messages
 - Added readiness helper `isRabbitReady()`
 
@@ -142,6 +144,7 @@ Why:
 
 - RabbitMQ connection handling should be centralized, similar to Redis configuration.
 - Publishing and consuming should use one shared setup instead of duplicating connection code.
+- A dead-letter queue preserves failed email jobs for inspection and retry instead of silently dropping them.
 
 ### 3. Connected RabbitMQ during server startup
 
@@ -208,12 +211,15 @@ File: `server/workers/bookingWorker.js`
 What changed:
 
 - Added a worker process that consumes the `ticket_email` queue
+- Added a worker process that consumes the `ticket_email_v2` queue
 - The worker sends ticket emails using the existing email helper flow
+- Failed worker jobs are `nack`ed without requeue so RabbitMQ routes them to `ticket_email_v2_dlq`
 
 Why:
 
 - Background jobs should be processed outside the API process.
 - A worker can be scaled separately if email load grows.
+- DLQ routing prevents failed email jobs from being lost.
 
 ### 8. Added environment configuration
 
@@ -272,3 +278,113 @@ Verified result:
 - Final readiness state after the fix:
 
 `{"ok":true,"db":true,"redis":true,"rabbitmq":true}`
+
+## DLQ behavior
+
+RabbitMQ now uses a dead-letter queue for failed ticket email jobs.
+
+Flow:
+
+1. Booking API publishes a message to `ticket_email_v2`
+2. Worker consumes the message
+3. If email sending succeeds, the worker sends `ack`
+4. If email sending fails, the worker sends `nack` with requeue disabled
+5. RabbitMQ moves the failed message to `ticket_email_v2_dlq`
+
+Why this is better than dropping failed jobs:
+
+- failed email jobs are preserved
+- you can inspect the payload later
+- you can retry them manually or with a future retry worker
+- booking confirmation still stays independent from email provider slowness
+
+## Estimated performance improvement after RabbitMQ
+
+These numbers are estimated from the request path and external I/O involved in this project.
+They are not from a formal load test, so they should be presented as modeled estimates, not exact benchmark results.
+
+### What changed in the request path
+
+Before RabbitMQ:
+- booking confirmed
+- MongoDB updated
+- Redis seat-map cache invalidated
+- ticket email sent inside the same API request
+
+After RabbitMQ:
+- booking confirmed
+- MongoDB updated
+- Redis seat-map cache invalidated
+- small queue message published
+- API responds immediately
+- worker sends ticket email separately
+
+### Assumed timing breakdown
+
+Modeled booking confirmation timings:
+
+- MongoDB booking write + show update + cache invalidation: `150ms to 300ms`
+- Direct email provider call: `500ms to 1200ms`
+- RabbitMQ publish: `5ms to 30ms`
+
+Midpoint values used for calculation:
+
+- Core booking work: `250ms`
+- Direct email call: `800ms`
+- RabbitMQ publish: `20ms`
+
+### Before vs after table
+
+| Scenario | Core booking work | Email / Queue work | Total user-facing response |
+| --- | --- | --- | --- |
+| Before RabbitMQ | 250ms | 800ms email API call | 1050ms |
+| After RabbitMQ | 250ms | 20ms queue publish | 270ms |
+
+### Normal traffic improvement
+
+Formula:
+
+`((before - after) / before) * 100`
+
+Calculation:
+
+`((1050 - 270) / 1050) * 100 = 74.3%`
+
+Estimated result:
+
+- Normal traffic booking confirmation latency improvement: `about 70% to 75% faster`
+
+### High traffic improvement
+
+For high traffic, the main benefit is higher request throughput because API workers are no longer blocked on the email provider call.
+
+Formula:
+
+`before response time / after response time`
+
+Calculation:
+
+`1050 / 270 = 3.88x`
+
+Estimated result:
+
+- High traffic throughput improvement on booking confirmation path: `about 2x to 4x`
+- Midpoint estimate: `about 3.9x`
+- Percentage throughput improvement: `(3.88 - 1) * 100 = 288%`
+
+### Final summary for reporting
+
+Reasonable reportable numbers for this project:
+
+- Normal traffic: `~74% faster booking confirmation response time`
+- High traffic: `~288% higher booking endpoint throughput`
+
+### Important caveat
+
+RabbitMQ improves the asynchronous part of the booking workflow.
+It does not make MongoDB or Stripe intrinsically faster.
+
+So these gains apply mainly to:
+- booking confirmation latency
+- API throughput under booking load
+- resilience when the email provider is slow

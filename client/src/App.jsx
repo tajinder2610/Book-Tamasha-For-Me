@@ -26,7 +26,7 @@ function App() {
         <Route
           path="/"
           element={
-            <ProtectedRoute allowedRoles={["user"]}>
+            <ProtectedRoute allowedRoles={["user"]}>  {/* allowedRoles is a prop */}
               <Home />
             </ProtectedRoute>
           }
@@ -36,7 +36,7 @@ function App() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            <ProtectedRoute allowedRoles={["admin"]}>  {/* allowedRoles is a prop */}
               <Admin />
             </ProtectedRoute>
           }
@@ -46,7 +46,7 @@ function App() {
         <Route
           path="/partner"
           element={
-            <ProtectedRoute allowedRoles={["partner"]}>
+            <ProtectedRoute allowedRoles={["partner"]}>  {/* allowedRoles is a prop */}
               <Partner />
             </ProtectedRoute>
           }
@@ -56,7 +56,7 @@ function App() {
         <Route
           path="/profile"
           element={
-            <ProtectedRoute allowedRoles={["user"]}>
+            <ProtectedRoute allowedRoles={["user"]}>  {/* allowedRoles is a prop */}
               <User />
             </ProtectedRoute>
           }
@@ -66,7 +66,7 @@ function App() {
         <Route
           path="/movie/:id"
           element={
-            <ProtectedRoute allowedRoles={["user"]}>
+            <ProtectedRoute allowedRoles={["user"]}>  {/* allowedRoles is a prop */}
               <SingleMovie />
             </ProtectedRoute>
           }
@@ -76,7 +76,7 @@ function App() {
         <Route
           path="/book-show/:id"
           element={
-            <ProtectedRoute allowedRoles={["user"]}>
+            <ProtectedRoute allowedRoles={["user"]}>  {/* allowedRoles is a prop */}
               <BookShow />
             </ProtectedRoute>
           }
@@ -86,7 +86,7 @@ function App() {
         <Route
           path="/payment-success"
           element={
-            <ProtectedRoute allowedRoles={["user"]}>
+            <ProtectedRoute allowedRoles={["user"]}>  {/* allowedRoles is a prop */}
               <PaymentSuccess />
             </ProtectedRoute>
           }

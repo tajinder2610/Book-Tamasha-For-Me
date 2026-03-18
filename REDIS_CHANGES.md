@@ -322,3 +322,49 @@ Verified result:
 - Final readiness state after the fix:
 
 `{"ok":true,"db":true,"redis":true,"rabbitmq":true}`
+
+## Small benchmark note for project report
+
+This project currently uses Redis for short-lived and high-frequency operations such as OTP storage, seat-map caching, temporary seat locking, and shared rate limiting.
+
+The following numbers are report-friendly engineering estimates based on expected latency reduction and database-load reduction after moving these flows from MongoDB or in-process memory to Redis. These are not formal load-test results from a benchmark suite.
+
+### Before vs after estimate table
+
+| Flow | Before Redis | After Redis | Estimated improvement |
+| --- | --- | --- | --- |
+| OTP save/read | MongoDB read/write for temporary OTP data | Redis in-memory read/write with TTL | 40% to 70% |
+| Seat-map fetch | Repeated MongoDB reads for show seat data | Redis cache hit for frequently read seat maps | 60% to 90% on cache hits |
+| Booking concurrency | More DB contention during simultaneous seat selection | Redis temporary seat locks reduce race window | 50% to 80% under heavy traffic |
+| Rate limiting | Per-process memory only | Shared Redis-backed counters across instances | 30% to 60% scalability/consistency gain |
+| Overall Redis-backed flows | DB handles most temporary/high-frequency work | Redis handles hot paths, DB handles final persistence | 20% to 40% in normal traffic |
+| Overall system under peak traffic | Higher DB pressure and more conflicting booking requests | Lower DB pressure and better concurrency handling | 50% to 80% in high traffic |
+
+### Formula used
+
+The percentage improvement is estimated using:
+
+`Improvement % = ((Before - After) / Before) * 100`
+
+Example:
+
+- If a seat-map request took 100 ms before Redis
+- And the same request takes 30 ms after a Redis cache hit
+
+Then:
+
+`((100 - 30) / 100) * 100 = 70%`
+
+### How these estimates were derived
+
+- OTPs are short-lived values, so Redis avoids unnecessary MongoDB document updates.
+- Seat maps are read frequently, so cache hits remove repeated DB reads entirely for many requests.
+- Seat locks are temporary coordination data, so Redis reduces booking conflicts before the final DB write.
+- Rate-limit counters are shared across instances in Redis, which scales better than storing counts in one Node.js process.
+- Since Redis does not optimize every endpoint, the overall app improvement is lower than the improvement of individual Redis-backed flows.
+
+### Safe way to present this in interview or report
+
+Use wording like:
+
+`Based on the architecture change, Redis improved the hot-path performance by roughly 30% in normal traffic and up to 70% during high-traffic scenarios. These are engineering estimates derived from reduced database access and faster in-memory operations, not formal benchmark-lab measurements.`
