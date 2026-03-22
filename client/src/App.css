@@ -1031,6 +1031,113 @@ hr {
   gap: 20px;
 }
 
+.status-page-shell {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.block-user-search-results {
+  margin-bottom: 16px;
+}
+
+.block-user-search-field {
+  margin-bottom: 12px !important;
+}
+
+.block-user-search-dropdown {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #d9e4f5;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 24px rgba(15, 31, 56, 0.08);
+}
+
+.block-user-search-dropdown .ant-list-items {
+  padding: 6px;
+}
+
+.block-user-search-results-empty {
+  min-height: 4px;
+}
+
+.block-user-search-item {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 10px;
+  padding-inline: 12px !important;
+}
+
+.block-user-search-item:hover,
+.block-user-search-item.selected {
+  background: #f6f9ff;
+}
+
+.block-user-search-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.block-user-role-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #33507a;
+  text-transform: capitalize;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.block-user-selected-card {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid #d9e4f5;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fbfdff 0%, #f2f7ff 100%);
+}
+
+.block-user-selected-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.block-user-selected-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #dbe5f4;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.block-user-selected-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  color: #42536d;
+}
+
+.block-user-remove-btn.ant-btn {
+  color: #6c7f99;
+}
+
+.block-user-modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
 .dashboard-shell {
   padding: 8px 4px;
 }

@@ -18,6 +18,16 @@ function Login() {
       localStorage.setItem("token", response.data.token);
 
       const role = response.data.role;
+      const partnerRequestStatus = response.data.partnerRequestStatus;
+
+      if (
+        role === "user" &&
+        ["pending", "rejected", "blocked"].includes(partnerRequestStatus)
+      ) {
+        localStorage.removeItem("token");
+        navigate("/partner-approval-pending");
+        return;
+      }
 
       if (role === "admin") {
         navigate("/admin");
@@ -28,7 +38,11 @@ function Login() {
       }
 
     } else {
-      message.error(response.message);
+      if (response.data?.isBlocked) {
+        navigate("/blocked-user-access-denied");
+      } else {
+        message.error(response.message);
+      }
     }
   } catch (err) {
     message.error(err?.response?.data?.message || err.message || "Login failed");

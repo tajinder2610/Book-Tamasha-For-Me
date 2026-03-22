@@ -5,6 +5,18 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Use your sec
 // const emailHelper = require("../utils/emailHelper");
 const { enqueueTicketEmail } = require("../queues/bookingQueue");
 const { buildTicketEmailPayload } = require("../utils/ticketEmail");
+const User = require("../models/userModel");
+
+const ensureUserCanBook = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+  if (user.isBlocked) {
+    throw new Error(user.blockReason || "Your account has been blocked from booking");
+  }
+  return user;
+};
 
 const hydrateBooking = async (bookingId) => {
   return Booking.findById(bookingId)
@@ -136,6 +148,7 @@ exports.makePayment = async (req, res) => {
 exports.createCheckoutSession = async (req, res) => {
   try {
     const { showId, seats } = req.body;
+    await ensureUserCanBook(req.userId);
     if (!showId || !Array.isArray(seats) || seats.length === 0) {
       return res.status(400).json({
         success: false,
@@ -248,6 +261,7 @@ exports.confirmCheckoutSession = async (req, res) => {
         message: "Checkout session does not belong to this user",
       });
     }
+    await ensureUserCanBook(req.userId);
 
     const transactionId = String(session.payment_intent || session.id);
     const existingBooking = await Booking.findOne({ transactionId });
@@ -308,6 +322,7 @@ exports.bookShow = async (req, res) => {
         message: "User is required for booking",
       });
     }
+    await ensureUserCanBook(userId);
 
     const bookingData = await createBookingRecord({
       showId: show,

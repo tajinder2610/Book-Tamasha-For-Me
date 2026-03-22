@@ -10,7 +10,11 @@ const Register = () => {
       const response = await RegisterUser(value);
       if(response.success){
         message.success(response.message);
-        navigate("/login");
+        if (response.data?.partnerRequestStatus === "pending") {
+          navigate("/partner-request-sent");
+        } else {
+          navigate("/login");
+        }
       }else{
         message.error(response.message);
       }

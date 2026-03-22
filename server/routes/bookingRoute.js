@@ -10,7 +10,7 @@ const {
 } = require("../controller/booking");
 // Route to process payment
 router.post("/make-payment", makePayment);
-router.post("/book-show", bookShow);
+router.post("/book-show", authMiddleware, bookShow);
 router.post("/create-checkout-session", authMiddleware, createCheckoutSession);
 router.post("/confirm-checkout-session", authMiddleware, confirmCheckoutSession);
 router.get("/:userId", authMiddleware, getAllBookings);

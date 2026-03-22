@@ -15,6 +15,9 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 
 import Forget from "./pages/Forget";
 import Reset from "./pages/Reset";
+import PartnerRequestSent from "./pages/PartnerRequestSent";
+import PartnerApprovalPending from "./pages/PartnerApprovalPending";
+import BlockedUserAccessDenied from "./pages/BlockedUserAccessDenied";
 
 import NotFound from "./Components/NotFound";
 
@@ -95,6 +98,9 @@ function App() {
         {/* PUBLIC ROUTES */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/partner-request-sent" element={<PartnerRequestSent />} />
+        <Route path="/partner-approval-pending" element={<PartnerApprovalPending />} />
+        <Route path="/blocked-user-access-denied" element={<BlockedUserAccessDenied />} />
         <Route path="/forget" element={<Forget />} />
         <Route path="/reset" element={<Reset />} />
         <Route path="/reset/:email" element={<Reset />} />

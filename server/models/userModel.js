@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     password: {
         type: String,
@@ -25,6 +26,24 @@ const userSchema = new mongoose.Schema({
         enum: ["admin", "user", "partner"],
         required: true,
         default: "user"
+    },
+    partnerRequestStatus: {
+        type: String,
+        enum: ["none", "pending", "approved", "rejected", "blocked"],
+        default: "none"
+    },
+    partnerRequestSubmittedAt: {
+        type: Date
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false
+    },
+    blockReason: {
+        type: String
+    },
+    blockedAt: {
+        type: Date
     },
     otp: {
         type: String
