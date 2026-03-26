@@ -58,7 +58,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       }
       if (user.role === "partner") {
         return <Navigate to="/partner" replace />;
-      }
+      } 
     }
     return <AccessDenied />;
   }

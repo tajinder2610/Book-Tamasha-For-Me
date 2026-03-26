@@ -40,7 +40,7 @@ Apache Kafka was not chosen because:
 
 Current use:
 - ticket email jobs after successful booking
-- failed ticket email jobs are moved to a dead-letter queue (`ticket_email_v2_dlq` by default)
+- failed ticket email jobs first move through delayed retry queues and finally to a dead-letter queue (`ticket_email_v2_dlq` by default)
 
 Good future candidates:
 - SMS/notification jobs
@@ -211,15 +211,17 @@ File: `server/workers/bookingWorker.js`
 What changed:
 
 - Added a worker process that consumes the `ticket_email` queue
-- Added a worker process that consumes the `ticket_email_v2` queue
+- Added delayed retry queues for ticket email jobs
 - The worker sends ticket emails using the existing email helper flow
-- Failed worker jobs are `nack`ed without requeue so RabbitMQ routes them to `ticket_email_v2_dlq`
+- Failed worker jobs are republished to retry queues with TTL delays and return to the main queue
+- After the final retry, failed jobs are moved to `ticket_email_v2_dlq`
 
 Why:
 
 - Background jobs should be processed outside the API process.
 - A worker can be scaled separately if email load grows.
-- DLQ routing prevents failed email jobs from being lost.
+- Delayed retries handle transient email/provider failures without blocking bookings.
+- DLQ routing still prevents permanently failed jobs from being lost.
 
 ### 8. Added environment configuration
 
@@ -279,24 +281,149 @@ Verified result:
 
 `{"ok":true,"db":true,"redis":true,"rabbitmq":true}`
 
-## DLQ behavior
+## Retry and DLQ behavior
 
-RabbitMQ now uses a dead-letter queue for failed ticket email jobs.
+RabbitMQ now uses delayed retry queues before sending failed ticket email jobs to the dead-letter queue.
 
 Flow:
 
 1. Booking API publishes a message to `ticket_email_v2`
 2. Worker consumes the message
 3. If email sending succeeds, the worker sends `ack`
-4. If email sending fails, the worker sends `nack` with requeue disabled
-5. RabbitMQ moves the failed message to `ticket_email_v2_dlq`
+4. If email sending fails the first time, the worker moves the message to `ticket_email_v2_retry_1`
+5. `ticket_email_v2_retry_1` waits for its TTL (`5000ms` by default) and dead-letters the message back to `ticket_email_v2`
+6. If email sending fails again, the worker moves the message to `ticket_email_v2_retry_2`
+7. `ticket_email_v2_retry_2` waits for its TTL (`30000ms` by default) and dead-letters the message back to `ticket_email_v2`
+8. If email sending still fails after the final retry, the worker moves the message to `ticket_email_v2_dlq`
 
-Why this is better than dropping failed jobs:
+Default retry chain:
 
+- `ticket_email_v2 -> ticket_email_v2_retry_1 (5s) -> ticket_email_v2`
+- `ticket_email_v2 -> ticket_email_v2_retry_2 (30s) -> ticket_email_v2`
+- final failure -> `ticket_email_v2_dlq`
+
+Why this is better than dropping failed jobs or immediately dead-lettering them:
+
+- transient failures get another chance automatically
+- retries happen with a delay instead of hammering the email provider immediately
 - failed email jobs are preserved
 - you can inspect the payload later
 - you can retry them manually or with a future retry worker
 - booking confirmation still stays independent from email provider slowness
+
+Optional environment variables:
+
+- `RABBITMQ_TICKET_EMAIL_RETRY_1_QUEUE`
+- `RABBITMQ_TICKET_EMAIL_RETRY_2_QUEUE`
+- `RABBITMQ_TICKET_EMAIL_RETRY_1_TTL_MS`
+- `RABBITMQ_TICKET_EMAIL_RETRY_2_TTL_MS`
+
+## How to investigate and resolve messages in the DLQ
+
+When a message reaches `ticket_email_v2_dlq`, it means:
+
+- the worker already tried the main queue attempt
+- the worker already tried the delayed retry chain
+- the job is now considered a permanent failure until someone investigates it
+
+Typical reasons:
+
+- email provider API outage or timeout
+- invalid recipient email
+- malformed payload
+- template/rendering failure
+- missing environment variables or credentials
+
+Recommended investigation flow:
+
+1. Check worker logs first
+
+- Look for logs like:
+- `RabbitMQ consumer failed for ticket_email_v2: ...`
+- `RabbitMQ message moved to retry queue ...`
+- `RabbitMQ message moved to DLQ ticket_email_v2_dlq after 2 retries`
+
+2. Inspect the DLQ message payload and headers
+
+- Use the RabbitMQ Management UI if enabled
+- Open queue: `ticket_email_v2_dlq`
+- Review:
+- payload body
+- `x-retry-count` header
+- timestamp if available
+- any other custom headers
+
+3. Identify and fix the root cause
+
+- provider issue: wait for recovery or fix credentials
+- bad payload: fix the producer or data mapping
+- template issue: fix template/rendering bug
+- invalid email: correct data or decide to drop that message
+
+4. Decide whether the message is safe to retry
+
+- retry if the failure was transient or has been fixed
+- do not blindly retry malformed or permanently invalid messages
+
+## How to retry a DLQ message today
+
+Current project behavior:
+
+- retry from the main worker is automatic only for the configured retry queues
+- retry from the DLQ is still manual
+
+Manual retry options today:
+
+- RabbitMQ UI:
+- get the message from `ticket_email_v2_dlq`
+- republish the same payload to `ticket_email_v2`
+- reset or remove the `x-retry-count` header before republishing if you want it to go through the retry chain again
+
+- RabbitMQ CLI or admin script:
+- read the DLQ message
+- fix payload/headers if needed
+- publish it back to `ticket_email_v2`
+
+Important safety note:
+
+- if you requeue a DLQ message with `x-retry-count` still set to the max retry count, this code will send it back to the DLQ again on the next failure
+- if you want a fresh retry cycle, republish with `x-retry-count: 0` or remove that header
+
+## What was added now in code comments
+
+The code comments now explicitly mention:
+
+- the retry-queue-with-TTL flow for ticket email jobs
+- that retry queues act as delay buckets
+- that `x-retry-count` is used to track attempts
+- that DLQ handling is currently for manual operator investigation and replay
+
+Files updated for these comments:
+
+- `server/config/rabbitmq.js`
+- `server/workers/bookingWorker.js`
+
+## What will be added in the future for retry from DLQ
+
+Planned future improvement:
+
+- add a dedicated DLQ replay/admin flow instead of relying on manual requeue
+
+Likely future behavior:
+
+- inspect DLQ messages from an admin tool or script
+- optionally edit/validate the payload before replay
+- reset retry metadata safely
+- republish to `ticket_email_v2`
+- record audit logs for who replayed the message and when
+- cap replay attempts to avoid infinite poison-message loops
+
+Possible implementation options later:
+
+- admin API endpoint for DLQ replay
+- separate worker/script for replaying selected DLQ messages
+- dashboard action from RabbitMQ management workflow
+- quarantine path for messages that should not be retried
 
 ## Estimated performance improvement after RabbitMQ
 

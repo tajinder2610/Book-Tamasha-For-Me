@@ -18,6 +18,8 @@ import Reset from "./pages/Reset";
 import PartnerRequestSent from "./pages/PartnerRequestSent";
 import PartnerApprovalPending from "./pages/PartnerApprovalPending";
 import BlockedUserAccessDenied from "./pages/BlockedUserAccessDenied";
+import OAuthRoleSelection from "./pages/OAuthRoleSelection";
+import OAuthSuccess from "./pages/OAuthSuccess";
 
 import NotFound from "./Components/NotFound";
 
@@ -101,6 +103,8 @@ function App() {
         <Route path="/partner-request-sent" element={<PartnerRequestSent />} />
         <Route path="/partner-approval-pending" element={<PartnerApprovalPending />} />
         <Route path="/blocked-user-access-denied" element={<BlockedUserAccessDenied />} />
+        <Route path="/oauth/select-role" element={<OAuthRoleSelection />} />
+        <Route path="/oauth/success" element={<OAuthSuccess />} />
         <Route path="/forget" element={<Forget />} />
         <Route path="/reset" element={<Reset />} />
         <Route path="/reset/:email" element={<Reset />} />

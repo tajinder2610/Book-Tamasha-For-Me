@@ -10,7 +10,7 @@ function PartnerRequestSent() {
       <Result
         status="info"
         title="Partner Request Submitted"
-        subTitle="Your Partner Request is sent to Admin for Approval."
+        subTitle="Your Partner request is sent to Admin for approval."
         extra={
           <Button type="primary" onClick={() => navigate("/login")}>
             Go to Login

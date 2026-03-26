@@ -1026,6 +1026,53 @@ hr {
   color: #20344d;
 }
 
+.oauth-divider {
+  position: relative;
+  margin: 8px 0 18px;
+  text-align: center;
+}
+
+.oauth-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px solid rgba(17, 24, 39, 0.12);
+}
+
+.oauth-divider span {
+  position: relative;
+  display: inline-block;
+  padding: 0 12px;
+  background: #fff;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.google-login-button {
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(17, 24, 39, 0.14);
+  font-weight: 600;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+.google-login-button:hover {
+  border-color: #d97706 !important;
+  color: #d97706 !important;
+}
+
+.oauth-selection-card {
+  max-width: 720px;
+}
+
+.oauth-role-card {
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+}
+
 .register-role-group {
   display: flex;
   gap: 20px;

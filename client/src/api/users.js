@@ -132,3 +132,15 @@ export const ResetPassword = async(email, value) => {
         };
     }
 }
+
+export const CompleteGoogleSignup = async(value) => {
+    try{
+        const response = await axiosInstance.post("/api/users/oauth/complete", value);
+        return response.data;
+    }catch(err){
+        return {
+            success: false,
+            message: err?.response?.data?.message || err.message,
+        };
+    }
+}

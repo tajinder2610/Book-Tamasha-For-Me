@@ -205,7 +205,7 @@ function BlockUserModal({ isModalOpen, setIsModalOpen, getData }) {
         <Form.Item className="m-0">
           <div className="block-user-modal-actions">
             <Button block type="primary" danger htmlType="submit">
-            Block User
+            Block
             </Button>
             <Button block onClick={handleCancel}>
               Cancel

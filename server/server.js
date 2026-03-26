@@ -9,7 +9,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const app = express();
 
-require("dotenv").config(); //load .env variables into process.env object
+require("dotenv").config({ path: path.join(__dirname, ".env") }); // load env from server/.env regardless of cwd
 
 // Render sits behind a reverse proxy and forwards client IP via X-Forwarded-For.
 // Trust the first proxy hop so middleware like express-rate-limit can identify clients correctly.

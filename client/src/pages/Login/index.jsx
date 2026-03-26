@@ -1,10 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Form, Input, Typography, message } from "antd";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { LoginUser } from "../../api/users";
+import { handleAuthSuccess } from "../../utils/authRedirect";
+
 function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const googleLoginUrl = `${import.meta.env.VITE_API_BASE_URL || ""}/api/users/google/login`;
+
+  useEffect(() => {
+    const oauthError = searchParams.get("oauthError");
+    if (oauthError) {
+      message.error(oauthError);
+      navigate("/login", { replace: true });
+    }
+  }, [navigate, searchParams]);
 
   const onFinish = async (value) => {
   setIsSubmitting(true);
@@ -13,30 +25,7 @@ function Login() {
 
     if (response.success) {
       message.success(response.message);
-
-      // store token
-      localStorage.setItem("token", response.data.token);
-
-      const role = response.data.role;
-      const partnerRequestStatus = response.data.partnerRequestStatus;
-
-      if (
-        role === "user" &&
-        ["pending", "rejected", "blocked"].includes(partnerRequestStatus)
-      ) {
-        localStorage.removeItem("token");
-        navigate("/partner-approval-pending");
-        return;
-      }
-
-      if (role === "admin") {
-        navigate("/admin");
-      } else if (role === "partner") {
-        navigate("/partner");
-      } else {
-        navigate("/");
-      }
-
+      handleAuthSuccess(response.data, navigate);
     } else {
       if (response.data?.isBlocked) {
         navigate("/blocked-user-access-denied");
@@ -111,6 +100,21 @@ function Login() {
             </Button>
           </Form.Item>
         </Form>
+
+        <div className="oauth-divider">
+          <span>or</span>
+        </div>
+
+        <Button
+          size="large"
+          block
+          className="google-login-button"
+          onClick={() => {
+            window.location.assign(googleLoginUrl);
+          }}
+        >
+          Continue with Google
+        </Button>
 
         <div className="auth-links">
           <Typography.Paragraph className="auth-links-label m-0">
