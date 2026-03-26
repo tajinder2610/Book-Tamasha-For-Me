@@ -4,6 +4,42 @@
 
 RabbitMQ is used to move non-critical background work out of the main booking request flow.
 
+Background Jobs (Async Processing)
+RabbitMQ is very commonly used here.
+🔹 Typical Use Cases
+Sending emails (welcome emails, OTPs)
+Image/video processing
+Generating reports (PDFs, analytics)
+Data syncing between services
+Order processing in e-commerce
+🔹 How It Works
+Your app receives a request (e.g., user signs up)
+Instead of doing heavy work immediately, it:
+Sends a message to RabbitMQ (queue)
+A worker service consumes the message
+Worker processes the job in the background
+🔹 Why Use RabbitMQ Here?
+Non-blocking (faster API responses)
+Retry mechanisms (if job fails)
+Load balancing across workers
+Handles spikes smoothly
+
+✔ Use RabbitMQ for Background Jobs when:
+Task is time-consuming
+Doesn’t need immediate response
+Can be retried
+
+🚫 When NOT Ideal
+Real-time low-latency APIs → better use HTTP/gRPC
+Streaming large-scale events → consider Apache Kafka
+🧠 Quick Summary
+Background jobs → primary use case ✅
+Request-response (RPC) → possible but secondary ⚠️
+Great for decoupling, reliability, and async workflows
+
+👉 Example:
+A web app queues “send email” → worker sends it later.
+
 In this project, the first RabbitMQ use case is ticket email delivery after a booking is confirmed.
 
 Without a queue, the API had to:

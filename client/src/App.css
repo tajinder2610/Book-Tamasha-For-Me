@@ -1058,6 +1058,19 @@ hr {
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
 }
 
+.google-login-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.google-login-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
 .google-login-button:hover {
   border-color: #d97706 !important;
   color: #d97706 !important;
