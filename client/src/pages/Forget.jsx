@@ -3,6 +3,7 @@ import { Button, Form, Input, Typography } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { ForgetPassword } from "../api/users";
 import { message } from "antd";
+import AuthPosterBackground from "../Components/AuthPosterBackground";
 
 
 function Forget() {
@@ -39,6 +40,7 @@ function Forget() {
  }, [navigate]);
  return (
      <main className="auth-shell">
+       <AuthPosterBackground />
        <section className="auth-card">
          <div className="auth-head">
            <Typography.Title level={2} className="m-0">

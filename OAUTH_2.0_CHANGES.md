@@ -24,7 +24,7 @@ OAuth 2.0 itself is about authorization. When it is used for login, it is common
 - Refresh Token: a token used to get a new access token
 - ID Token: identity information returned in OpenID Connect flows
 
-## What `redirect_uri` Means
+## What `redirect_uri(Uniform Resource Identifier)` Means
 
 The `redirect_uri` is the callback URL where the authorization server sends the user after login and consent.
 
@@ -35,7 +35,7 @@ Example:
 The authorization server sends the authorization code to this URL.
 
 Important details:
-- the URI must be registered in the provider's console
+- the URI(Uniform Resource Identifier) must be registered in the provider's console
 - the same URI must be used again during token exchange
 - mismatches usually cause the flow to fail
 
@@ -161,7 +161,7 @@ User -> Frontend -> Authorization Server -> Backend Callback -> Token Endpoint -
 ### Basic Steps
 
 1. Create OAuth credentials in Google Cloud Console
-2. configure the authorized redirect URI
+2. configure the authorized redirect URI(Uniform Resource Identifier)
 3. add a login button in the frontend
 4. redirect the user to a backend route such as `/auth/google`
 5. backend redirects the user to Google's authorization page

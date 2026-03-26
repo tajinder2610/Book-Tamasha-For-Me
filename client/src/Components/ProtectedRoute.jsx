@@ -2,7 +2,7 @@ import React, { useEffect, useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link, useLocation, Navigate } from "react-router-dom";
 import { HomeOutlined, LogoutOutlined, ProfileOutlined, UserOutlined } from "@ant-design/icons";
-import { message, Layout, Menu, Spin } from "antd";
+import { Avatar, message, Layout, Menu, Spin } from "antd";
 import { showLoading, hideLoading } from "../../redux/loaderSlice";
 import { CurrentUser } from "../api/users";
 import { setUser } from "../../redux/userSlice";
@@ -65,6 +65,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
   const isHomePage = location.pathname === "/";
   const displayName = user?.name?.trim() || "Account";
+  const profileAvatar = user?.avatar?.trim() || undefined;
+  const shouldShowGoogleAvatar = Boolean(user?.googleId && profileAvatar);
   const shouldShowHomeShortcut = user.role === "user" && !isHomePage;
 
   const navItems = [
@@ -91,7 +93,16 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       key: "user-menu",
       className: "header-user-profile-menu",
       label: <span className="user-menu-label">{displayName}</span>,
-      icon: <UserOutlined />,
+      icon: shouldShowGoogleAvatar ? (
+        <Avatar
+          className="header-user-avatar"
+          size={30}
+          src={profileAvatar}
+          icon={<UserOutlined />}
+        />
+      ) : (
+        <UserOutlined />
+      ),
       children: [
         ...(user.role === "user"
           ? [
@@ -205,5 +216,3 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 };
 
 export default ProtectedRoute;
-
-

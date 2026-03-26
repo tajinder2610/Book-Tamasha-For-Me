@@ -510,8 +510,20 @@ table th {
   gap: 6px;
 }
 
-.app-header-animated .header-user-menu .header-user-profile-menu .ant-menu-submenu-title .anticon {
+.app-header-animated .header-user-menu .header-user-profile-menu .ant-menu-submenu-title .anticon,
+.app-header-animated .header-user-menu .header-user-profile-menu .header-user-avatar {
   transform: translateY(20px);
+}
+
+.header-user-avatar {
+  flex-shrink: 0;
+  margin-right: -2px;
+  border: 1px solid rgba(255, 224, 130, 0.45);
+  background: rgba(255, 224, 130, 0.16);
+}
+
+.header-user-avatar img {
+  object-fit: cover;
 }
 
 .app-header-animated .header-user-menu .header-home-shortcut .header-home-label {
@@ -748,6 +760,13 @@ hr {
   gap: 14px;
 }
 
+.booking-ticket-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .booking-details {
   flex: 1;
   min-width: 0;
@@ -829,6 +848,30 @@ hr {
   color: #666;
 }
 
+.booking-ticket-actions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.booking-download-btn.ant-btn {
+  min-width: 150px;
+  height: 34px;
+  border-radius: 999px;
+  border-color: #91caff;
+  color: #1677ff;
+  background: #f0f7ff;
+  font-weight: 600;
+}
+
+.booking-download-btn.ant-btn:hover,
+.booking-download-btn.ant-btn:focus {
+  border-color: #69b1ff !important;
+  color: #0958d9 !important;
+  background: #e6f4ff !important;
+}
+
 .booking-empty {
   padding-top: 20px;
 }
@@ -838,6 +881,8 @@ hr {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
   padding: 16px 24px;
   box-sizing: border-box;
   background:
@@ -846,12 +891,96 @@ hr {
     linear-gradient(135deg, #f7f8fb 0%, #eef3ff 100%);
 }
 
+.login-cinema-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 15% 18%, rgba(255, 211, 133, 0.34), transparent 26%),
+    radial-gradient(circle at 82% 20%, rgba(145, 202, 255, 0.28), transparent 30%),
+    linear-gradient(135deg, #21385b 0%, #2d4f7d 42%, #416a9e 100%);
+}
+
+.login-cinema-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, rgba(17, 36, 64, 0.08) 55%, rgba(12, 24, 44, 0.46) 100%);
+}
+
+.login-poster-catalogue {
+  position: absolute;
+  inset: -6%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 28px);
+  padding: 34px;
+  transform: rotate(-10deg) scale(1.08);
+  opacity: 0.7;
+}
+
+.login-poster-column {
+  --poster-gap: clamp(16px, 1.8vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--poster-gap);
+  min-width: 0;
+  will-change: transform;
+}
+
+.login-poster-column-1 {
+  animation: loginPosterLoopUp 28s linear infinite;
+}
+
+.login-poster-column-2 {
+  animation: loginPosterLoopDown 32s linear infinite;
+}
+
+.login-poster-column-3 {
+  animation: loginPosterLoopUp 30s linear infinite;
+}
+
+.login-poster-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 24px 45px rgba(0, 0, 0, 0.24);
+}
+
+.login-poster-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  filter: saturate(1.04) contrast(1.04) brightness(1.08);
+}
+
+.login-poster-card-shadow {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(7, 17, 32, 0.18)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 34%);
+}
+
+.login-cinema-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(14, 30, 54, 0.36) 100%),
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.03) 0%, rgba(11, 24, 43, 0.08) 48%, rgba(11, 24, 43, 0.34) 100%);
+}
+
 .auth-card {
+  position: relative;
+  z-index: 1;
   width: min(520px, 100%);
-  background: #fff;
-  border: 1px solid #eceff6;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
-  box-shadow: 0 14px 38px rgba(18, 28, 45, 0.08);
+  box-shadow: none;
   padding: 22px 22px 16px;
 }
 
@@ -860,22 +989,27 @@ hr {
 }
 
 .auth-card-login {
+  position: relative;
+  z-index: 1;
   width: min(360px, 100%);
   min-height: unset;
   padding: 18px 14px 20px;
   display: flex;
   flex-direction: column;
   border-radius: 18px;
-  border: 1px solid #dbe5f8;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(120, 176, 255, 0.18), transparent 36%),
-    radial-gradient(circle at 0% 100%, rgba(255, 214, 143, 0.16), transparent 34%),
-    #ffffff;
-  box-shadow: 0 16px 34px rgba(17, 35, 63, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
 }
 
 .auth-card-login .auth-head {
   margin-bottom: 8px;
+}
+
+.auth-card-login .auth-head .ant-typography {
+  color: #f8fbff;
+  text-shadow: 0 2px 14px rgba(5, 10, 18, 0.55);
 }
 
 .auth-card-login .auth-head .ant-typography.ant-typography-h2 {
@@ -886,6 +1020,7 @@ hr {
 .auth-card-login .auth-head .ant-typography + .ant-typography {
   font-size: 0.9rem;
   margin-top: 0;
+  color: rgba(241, 246, 255, 0.92);
 }
 
 .auth-card-login .auth-form .ant-form-item {
@@ -894,6 +1029,12 @@ hr {
 
 .auth-card-login .auth-form .ant-form-item-label {
   padding-bottom: 3px;
+}
+
+.auth-card-login .auth-form .ant-form-item-label > label,
+.auth-card-login .auth-links-label {
+  color: #f4f8ff;
+  text-shadow: 0 2px 12px rgba(5, 10, 18, 0.5);
 }
 
 .auth-card-login .auth-form input {
@@ -943,8 +1084,19 @@ hr {
   margin-bottom: 10px;
 }
 
+.auth-shell .auth-card .auth-head .ant-typography,
+.auth-shell .auth-card-wide .auth-head .ant-typography {
+  color: #f8fbff;
+  text-shadow: 0 2px 14px rgba(5, 10, 18, 0.55);
+}
+
 .auth-head .ant-typography {
   color: #1f2f46;
+}
+
+.auth-shell .auth-card .auth-head .ant-typography + .ant-typography,
+.auth-shell .auth-card-wide .auth-head .ant-typography + .ant-typography {
+  color: rgba(241, 246, 255, 0.92);
 }
 
 .auth-head .ant-typography + .ant-typography {
@@ -959,6 +1111,26 @@ hr {
 .auth-form .ant-form-item-label > label {
   font-weight: 600;
   color: #304863;
+}
+
+.auth-shell .auth-card .auth-form .ant-form-item-label > label,
+.auth-shell .auth-card-wide .auth-form .ant-form-item-label > label,
+.auth-shell .auth-card .auth-links p,
+.auth-shell .auth-card-wide .auth-links p,
+.auth-shell .auth-card .auth-links-label,
+.auth-shell .auth-card-wide .auth-links-label,
+.auth-shell .auth-card .auth-link-no-underline,
+.auth-shell .auth-card .auth-link-no-underline:visited,
+.auth-shell .auth-card .auth-link-no-underline:hover,
+.auth-shell .auth-card .auth-link-no-underline:active,
+.auth-shell .auth-card .auth-link-no-underline:focus,
+.auth-shell .auth-card-wide .auth-link-no-underline,
+.auth-shell .auth-card-wide .auth-link-no-underline:visited,
+.auth-shell .auth-card-wide .auth-link-no-underline:hover,
+.auth-shell .auth-card-wide .auth-link-no-underline:active,
+.auth-shell .auth-card-wide .auth-link-no-underline:focus {
+  color: #f4f8ff;
+  text-shadow: 0 2px 12px rgba(5, 10, 18, 0.5);
 }
 
 .auth-form .ant-btn-primary {
@@ -1045,8 +1217,8 @@ hr {
   position: relative;
   display: inline-block;
   padding: 0 12px;
-  background: #fff;
-  color: #6b7280;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.92);
   font-size: 14px;
 }
 
@@ -1089,6 +1261,11 @@ hr {
 .register-role-group {
   display: flex;
   gap: 20px;
+}
+
+.auth-shell .register-role-group .ant-radio-wrapper {
+  color: #f4f8ff;
+  text-shadow: 0 2px 12px rgba(5, 10, 18, 0.5);
 }
 
 .status-page-shell {
@@ -1345,6 +1522,24 @@ hr {
   }
 }
 
+@keyframes loginPosterLoopUp {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(calc(-50% - (var(--poster-gap) / 2)));
+  }
+}
+
+@keyframes loginPosterLoopDown {
+  0% {
+    transform: translateY(calc(-50% - (var(--poster-gap) / 2)));
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
 /* Loader Ends here */
 
 @media screen and (min-width: 768px) {
@@ -1479,6 +1674,17 @@ hr {
   .auth-shell {
     padding: 10px 14px;
   }
+  .login-poster-catalogue {
+    inset: -2%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 18px;
+    transform: rotate(-8deg) scale(1.04);
+    opacity: 0.58;
+  }
+  .login-poster-column-3 {
+    display: none;
+  }
   .auth-card,
   .auth-card-wide {
     padding: 16px 14px 12px;
@@ -1547,6 +1753,9 @@ hr {
     flex-direction: column;
     gap: 10px;
     align-items: center;
+  }
+  .booking-ticket-panel {
+    width: 100%;
   }
   .booking-qr {
     width: 104px;

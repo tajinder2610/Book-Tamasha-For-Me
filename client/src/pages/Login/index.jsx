@@ -3,6 +3,7 @@ import { Button, Form, Input, Typography, message } from "antd";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { LoginUser } from "../../api/users";
 import { handleAuthSuccess } from "../../utils/authRedirect";
+import AuthPosterBackground from "../../Components/AuthPosterBackground";
 
 function Login() {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ function Login() {
 };
   return (
     <main className="auth-shell">
+      <AuthPosterBackground />
       <section className="auth-card auth-card-login">
         <div className="auth-head">
           <Typography.Title level={2} className="m-0">

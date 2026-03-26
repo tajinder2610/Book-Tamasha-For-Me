@@ -3,6 +3,7 @@ import { Button, Form, Input, Typography } from "antd";
 import { ResetPassword } from "../api/users";
 import { message } from "antd";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import AuthPosterBackground from "../Components/AuthPosterBackground";
 
 
 function Reset() {
@@ -28,6 +29,7 @@ function Reset() {
  };
  return (
      <main className="auth-shell">
+       <AuthPosterBackground />
        <section className="auth-card">
          <div className="auth-head">
            <Typography.Title level={2} className="m-0">

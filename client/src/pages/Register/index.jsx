@@ -3,6 +3,7 @@ import { Button, Form, Input, Typography, message, Radio } from 'antd';
 import { Link } from "react-router-dom";
 import { RegisterUser } from '../../api/users';
 import { useNavigate } from "react-router-dom";
+import AuthPosterBackground from "../../Components/AuthPosterBackground";
 const Register = () => {
   const navigate = useNavigate();
   const onFinish = async(value) => {
@@ -24,6 +25,7 @@ const Register = () => {
   }
   return (
     <main className="auth-shell">
+          <AuthPosterBackground />
           <section className="auth-card auth-card-wide">
             <div className="auth-head">
               <Typography.Title level={2} className="m-0">
