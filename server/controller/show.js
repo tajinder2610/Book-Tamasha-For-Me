@@ -1,4 +1,41 @@
 const Show = require("../models/showModel");
+const { redisClient, isRedisReady } = require("../config/redis");
+
+const getSeatLockKeyPattern = (showId) => `seatlock:${showId}:*`;
+
+const getLockedSeatNumbers = async (showId) => {
+  if (!isRedisReady()) {
+    return [];
+  }
+
+  const lockedSeats = [];
+  for await (const key of redisClient.scanIterator({
+    MATCH: getSeatLockKeyPattern(showId),
+    COUNT: 100,
+  })) {
+    const seatNumber = Number(String(key).split(":").pop());
+    if (Number.isInteger(seatNumber) && seatNumber > 0) {
+      lockedSeats.push(seatNumber);
+    }
+  }
+
+  return [...new Set(lockedSeats)].sort((a, b) => a - b);
+};
+
+const enrichShowSeatAvailability = async (showDoc) => {
+  if (!showDoc) {
+    return showDoc;
+  }
+
+  const show = showDoc.toObject ? showDoc.toObject() : showDoc;
+  const lockedSeatNumbers = await getLockedSeatNumbers(show._id);
+
+  return {
+    ...show,
+    lockedSeatNumbers,
+    unavailableSeats: [...new Set([...(show.bookedSeats || []), ...lockedSeatNumbers])].sort((a, b) => a - b),
+  };
+};
 
 exports.addShow = async (req, res) => {
   try {
@@ -129,7 +166,7 @@ exports.showById = async (req, res) => {
     res.json({
         success: true,
         message: "show fetched",
-        data: show
+        data: await enrichShowSeatAvailability(show)
     })
   } catch (err) {
     res.status(500).json({

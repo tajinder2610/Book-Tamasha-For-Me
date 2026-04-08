@@ -354,6 +354,40 @@ Optional environment variables:
 - `RABBITMQ_TICKET_EMAIL_RETRY_1_TTL_MS`
 - `RABBITMQ_TICKET_EMAIL_RETRY_2_TTL_MS`
 
+## How to access RabbitMQ Management UI and DLQ
+
+If the RabbitMQ management plugin is enabled, open:
+
+- `http://localhost:15672`
+
+Typical local default login:
+
+- username: `guest`
+- password: `guest`
+
+How to reach the DLQ in the UI:
+
+1. Open `http://localhost:15672`
+2. Sign in
+3. Go to the `Queues` tab
+4. Open `ticket_email_v2_dlq`
+5. Use `Get messages` to inspect queued DLQ messages
+
+If the page does not open:
+
+- verify the RabbitMQ service is running
+- verify the management plugin is enabled
+- restart RabbitMQ after enabling the plugin
+- check that port `15672` is listening
+
+What you can inspect in the DLQ view:
+
+- message payload/body
+- `x-retry-count` header
+- delivery headers and properties
+- ready message count
+- whether the same job is repeatedly failing
+
 ## How to investigate and resolve messages in the DLQ
 
 When a message reaches `ticket_email_v2_dlq`, it means:

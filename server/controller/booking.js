@@ -6,6 +6,10 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // Use your sec
 const { enqueueTicketEmail } = require("../queues/bookingQueue");
 const { buildTicketEmailPayload } = require("../utils/ticketEmail");
 const User = require("../models/userModel");
+const { redisClient, isRedisReady } = require("../config/redis");
+
+const SEAT_HOLD_TTL_MS = Number(process.env.SEAT_HOLD_TTL_MS || 10 * 60 * 1000);
+const SEAT_LOCK_KEY_PREFIX = "seatlock";
 
 const ensureUserCanBook = async (userId) => {
   const user = await User.findById(userId);
@@ -16,6 +20,109 @@ const ensureUserCanBook = async (userId) => {
     throw new Error(user.blockReason || "Your account has been blocked from booking");
   }
   return user;
+};
+
+const normalizeSeatNumbers = (seats = []) =>
+  seats.map((seat) => Number(seat)).filter((seat) => Number.isInteger(seat) && seat > 0);
+
+const createHttpError = (message, statusCode) => {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+};
+
+const ensureRedisSeatLockingReady = () => {
+  if (!isRedisReady()) {
+    throw createHttpError("Seat locking is temporarily unavailable. Please try again in a moment.", 503);
+  }
+};
+
+const getSeatLockKey = (showId, seatNumber) => `${SEAT_LOCK_KEY_PREFIX}:${showId}:${seatNumber}`;
+
+const getSeatLockOwner = (userId) => String(userId);
+
+const acquireSeatLocks = async ({ showId, seatNumbers, userId }) => {
+  ensureRedisSeatLockingReady();
+
+  const owner = getSeatLockOwner(userId);
+  const keys = seatNumbers.map((seatNumber) => getSeatLockKey(showId, seatNumber));
+  const holdExpiry = new Date(Date.now() + SEAT_HOLD_TTL_MS);
+
+  const acquired = await redisClient.eval(
+    `
+      for i = 1, #KEYS do
+        local current = redis.call("GET", KEYS[i])
+        if current and current ~= ARGV[1] then
+          return 0
+        end
+      end
+
+      for i = 1, #KEYS do
+        redis.call("SET", KEYS[i], ARGV[1], "PX", ARGV[2])
+      end
+
+      return 1
+    `,
+    {
+      keys,
+      arguments: [owner, String(SEAT_HOLD_TTL_MS)],
+    }
+  );
+
+  return {
+    acquired: acquired === 1,
+    holdExpiry,
+  };
+};
+
+const validateSeatLocks = async ({ showId, seatNumbers, userId }) => {
+  ensureRedisSeatLockingReady();
+
+  const owner = getSeatLockOwner(userId);
+  const keys = seatNumbers.map((seatNumber) => getSeatLockKey(showId, seatNumber));
+  const valid = await redisClient.eval(
+    `
+      for i = 1, #KEYS do
+        local current = redis.call("GET", KEYS[i])
+        if current ~= ARGV[1] then
+          return 0
+        end
+      end
+
+      return 1
+    `,
+    {
+      keys,
+      arguments: [owner],
+    }
+  );
+
+  return valid === 1;
+};
+
+const releaseSeatLocks = async ({ showId, seatNumbers, userId }) => {
+  if (!isRedisReady()) {
+    return;
+  }
+
+  const owner = getSeatLockOwner(userId);
+  const keys = seatNumbers.map((seatNumber) => getSeatLockKey(showId, seatNumber));
+  await redisClient.eval(
+    `
+      for i = 1, #KEYS do
+        local current = redis.call("GET", KEYS[i])
+        if current == ARGV[1] then
+          redis.call("DEL", KEYS[i])
+        end
+      end
+
+      return 1
+    `,
+    {
+      keys,
+      arguments: [owner],
+    }
+  );
 };
 
 const hydrateBooking = async (bookingId) => {
@@ -40,7 +147,7 @@ const hydrateBooking = async (bookingId) => {
     });
 };
 
-const createBookingRecord = async ({ showId, seats, transactionId, userId }) => {
+const createBookingRecord = async ({ showId, seats, transactionId, userId, requireSeatHold = false }) => {
   const showData = await Show.findById(showId).populate("movie").populate("theatre");
   if (!showData) {
     throw new Error("Show not found");
@@ -49,6 +156,13 @@ const createBookingRecord = async ({ showId, seats, transactionId, userId }) => 
   const alreadyBookedSeats = seats.filter((seat) => showData.bookedSeats.includes(seat));
   if (alreadyBookedSeats.length > 0) {
     throw new Error(`Seats already booked: ${alreadyBookedSeats.join(", ")}`);
+  }
+
+  if (requireSeatHold) {
+    const hasValidLocks = await validateSeatLocks({ showId, seatNumbers: seats, userId });
+    if (!hasValidLocks) {
+      throw createHttpError("Your seat hold expired before payment confirmation", 409);
+    }
   }
 
   const newBooking = new Booking({
@@ -60,7 +174,8 @@ const createBookingRecord = async ({ showId, seats, transactionId, userId }) => 
   await newBooking.save();
 
   const updatedBookedSeats = [...new Set([...showData.bookedSeats, ...seats])];
-  await Show.findByIdAndUpdate(showId, { bookedSeats: updatedBookedSeats });
+  await Show.findByIdAndUpdate(showId, { $set: { bookedSeats: updatedBookedSeats } });
+  await releaseSeatLocks({ showId, seatNumbers: seats, userId });
 
   const bookingData = await hydrateBooking(newBooking._id);
   const ticketEmailPayload = buildTicketEmailPayload(bookingData);
@@ -156,7 +271,7 @@ exports.createCheckoutSession = async (req, res) => {
       });
     }
 
-    const seatNumbers = seats.map((seat) => Number(seat)).filter((seat) => Number.isInteger(seat) && seat > 0);
+    const seatNumbers = normalizeSeatNumbers(seats);
     if (seatNumbers.length !== seats.length) {
       return res.status(400).json({
         success: false,
@@ -172,14 +287,6 @@ exports.createCheckoutSession = async (req, res) => {
       });
     }
 
-    const alreadyBookedSeats = seatNumbers.filter((seat) => showData.bookedSeats.includes(seat));
-    if (alreadyBookedSeats.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `Seats already booked: ${alreadyBookedSeats.join(", ")}`,
-      });
-    }
-
     const unitAmount = Math.round(Number(showData.ticketPrice) * 100);
     if (!unitAmount || unitAmount <= 0) {
       return res.status(400).json({
@@ -188,41 +295,64 @@ exports.createCheckoutSession = async (req, res) => {
       });
     }
 
-    const clientBaseUrl = process.env.CLIENT_URL || req.headers.origin || "http://localhost:5173";
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "inr",
-            product_data: {
-              name: `${showData.movie?.title || "Movie"} - ${showData.name}`,
-            },
-            unit_amount: unitAmount,
-          },
-          quantity: seatNumbers.length,
-        },
-      ],
-      success_url: `${clientBaseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${clientBaseUrl}/book-show/${showId}`,
-      metadata: {
-        userId: String(req.userId),
-        showId: String(showId),
-        seats: seatNumbers.join(","),
-      },
+    const heldShowData = await acquireSeatLocks({
+      showId,
+      seatNumbers,
+      userId: req.userId,
     });
 
-    res.json({
-      success: true,
-      message: "Checkout session created",
-      data: {
-        sessionId: session.id,
-        url: session.url,
-      },
-    });
+    if (!heldShowData.acquired) {
+      return res.status(409).json({
+        success: false,
+        message: "One or more selected seats were just reserved by another user",
+      });
+    }
+
+    const clientBaseUrl = process.env.CLIENT_URL || req.headers.origin || "http://localhost:5173";
+    try {
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "inr",
+              product_data: {
+                name: `${showData.movie?.title || "Movie"} - ${showData.name}`,
+              },
+              unit_amount: unitAmount,
+            },
+            quantity: seatNumbers.length,
+          },
+        ],
+        success_url: `${clientBaseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${clientBaseUrl}/book-show/${showId}`,
+        metadata: {
+          userId: String(req.userId),
+          showId: String(showId),
+          seats: seatNumbers.join(","),
+        },
+      });
+
+      res.json({
+        success: true,
+        message: "Checkout session created and seats reserved",
+        data: {
+          sessionId: session.id,
+          url: session.url,
+          holdExpiresAt: heldShowData.holdExpiry,
+        },
+      });
+    } catch (stripeErr) {
+      await releaseSeatLocks({
+        showId,
+        seatNumbers,
+        userId: req.userId,
+      });
+      throw stripeErr;
+    }
   } catch (err) {
-    res.status(500).json({
+    res.status(err.statusCode || 500).json({
       success: false,
       message: err.message,
     });
@@ -291,6 +421,7 @@ exports.confirmCheckoutSession = async (req, res) => {
       seats: seatNumbers,
       transactionId,
       userId: req.userId,
+      requireSeatHold: true,
     });
 
     res.json({
@@ -299,7 +430,7 @@ exports.confirmCheckoutSession = async (req, res) => {
       data: bookingData,
     });
   } catch (err) {
-    res.status(500).json({
+    res.status(err.statusCode || 500).json({
       success: false,
       message: err.message,
     });
@@ -323,10 +454,17 @@ exports.bookShow = async (req, res) => {
       });
     }
     await ensureUserCanBook(userId);
+    const normalizedSeats = normalizeSeatNumbers(seats);
+    if (normalizedSeats.length !== seats.length || normalizedSeats.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking payload",
+      });
+    }
 
     const bookingData = await createBookingRecord({
       showId: show,
-      seats,
+      seats: normalizedSeats,
       transactionId,
       userId,
     });

@@ -23,7 +23,7 @@ async function emailHelper(templateName, receiverEmail, data) {
       from: '"Book Tamasha For Me" <onboarding@resend.dev>',
       // Resend sandbox restriction: send only to this verified mailbox.
       to: "tajinderpalsingh26@gmail.com",
-      subject: templateName === "ticket.html" ? "Your Booking Ticket" : "Reset Password OTP",
+      subject: templateName === "ticket.html" ? "Here's Your Ticket" : "Reset Password OTP",
       text: "Please view this email in HTML mode.",
       html: content,
     };

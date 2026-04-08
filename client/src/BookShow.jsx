@@ -47,7 +47,8 @@ function BookShow() {
   }, [getData]);
 
   const selectedSeatsSorted = [...selectedSeats].sort((a, b) => a - b);
-  const availableSeats = show ? show.totalSeats - show.bookedSeats.length : 0;
+  const unavailableSeats = show?.unavailableSeats || show?.bookedSeats || [];
+  const availableSeats = show ? show.totalSeats - unavailableSeats.length : 0;
   const totalPrice = show ? selectedSeats.length * show.ticketPrice : 0;
 
   const startCheckout = async () => {
@@ -154,7 +155,7 @@ function BookShow() {
                   seatClass += " selected";
                 }
 
-                if (show?.bookedSeats?.includes(seatNumber)) {
+                if (unavailableSeats.includes(seatNumber)) {
                   seatClass += " booked";
                 }
 
@@ -162,9 +163,9 @@ function BookShow() {
                   <li key={seatNumber}>
                     <button
                       className={seatClass}
-                      disabled={show.bookedSeats.includes(seatNumber)}
+                      disabled={unavailableSeats.includes(seatNumber)}
                       onClick={() => {
-                        if (show.bookedSeats.includes(seatNumber)) return;
+                        if (unavailableSeats.includes(seatNumber)) return;
 
                         if (selectedSeats.includes(seatNumber)) {
                           setSelectedSeats(

@@ -16,6 +16,7 @@ require("dotenv").config({ path: path.join(__dirname, ".env") }); // load env fr
 app.set("trust proxy", 1);
 
 const connectDB = require("./config/db");
+const { connectRedis, isRedisReady } = require("./config/redis");
 // old code:
 // There was no RabbitMQ config import before queue integration.
 const { connectRabbitMQ, isRabbitReady } = require("./config/rabbitmq");
@@ -30,8 +31,8 @@ const seedAdmin = require("./seedAdmin");
 // connectDB().then(() => {
 //   seedAdmin();  // <-- SAFE, runs only if admin doesn't exist
 // });
-// connect to DB and RabbitMQ, then seed admin
-Promise.all([connectDB(), connectRabbitMQ()]).then(() => {
+// connect to DB, Redis, and RabbitMQ, then seed admin
+Promise.all([connectDB(), connectRedis(), connectRabbitMQ()]).then(() => {
   seedAdmin();  // <-- SAFE, runs only if admin doesn't exist
 });
 
@@ -79,14 +80,16 @@ app.get("/healthz", (req, res) => {
 
 app.get("/readyz", (req, res) => {
   const isDbReady = mongoose.connection.readyState === 1;
+  const redisReady = isRedisReady();
   // old code:
   // /readyz did not exist before RabbitMQ integration.
   const rabbitReady = isRabbitReady();
 
-  if (!isDbReady) {
+  if (!isDbReady || !redisReady) {
     return res.status(503).json({
       ok: false,
       db: isDbReady,
+      redis: redisReady,
       rabbitmq: rabbitReady,
     });
   }
@@ -94,6 +97,7 @@ app.get("/readyz", (req, res) => {
   return res.status(200).json({
     ok: true,
     db: isDbReady,
+    redis: redisReady,
     rabbitmq: rabbitReady,
   });
 });
